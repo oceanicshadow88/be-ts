@@ -7,13 +7,13 @@ import { logger } from '../../loaders/logger';
 
 export interface IProjectRole {
   project: Types.ObjectId;
-  roleId: Types.ObjectId;
+  role: Types.ObjectId;
 }
 
 export interface IUser {
   email: string;
   password?: string;
-  isAdmin?: number;
+  isSuperUser?: number;
   refreshToken?: string;
   activeCode?: string;
   active: boolean;
@@ -57,7 +57,7 @@ const userSchema = new Schema<IUserDocument>(
       type: String,
       trim: true,
     },
-    isAdmin: {
+    isSuperUser: {
       type: Number,
       default: 0,
     },
@@ -81,7 +81,7 @@ const userSchema = new Schema<IUserDocument>(
           ref: 'projects',
           type: Types.ObjectId,
         },
-        roleId: {
+        role: {
           ref: 'roles',
           type: Types.ObjectId,
         },

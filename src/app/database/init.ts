@@ -50,6 +50,7 @@ export const init = async (dbConnection: any) => {
     return;
   }
 
+  const createProjectPolicy = new permission({ slug: 'add:projects', description: 'Add Project' });
   const viewProjectPolicy = new permission({ slug: 'view:projects', description: 'View Project' });
   const editProjectPolicy = new permission({ slug: 'edit:projects', description: 'Edit Project' });
   const deleteProjectPolicy = new permission({
@@ -112,6 +113,7 @@ export const init = async (dbConnection: any) => {
     description: 'Edit Settings',
   });
 
+  await createProjectPolicy.save();
   await viewProjectPolicy.save();
   await editProjectPolicy.save();
   await deleteProjectPolicy.save();
@@ -144,7 +146,7 @@ export const init = async (dbConnection: any) => {
   await viewSettingsPolicy.save();
   await editSettingsPolicy.save();
   ////////////////////////////////
-  const permissions = [
+  const adminPermissions = [
     viewProjectPolicy._id,
     editProjectPolicy._id,
     deleteProjectPolicy._id,
@@ -152,22 +154,18 @@ export const init = async (dbConnection: any) => {
     viewBoardPolicy._id,
     editBoardPolicy._id,
     deleteBoardPolicy._id,
-    addMembersPolicy._id,
     viewMembersPolicy._id,
     editMembersPolicy._id,
     deleteMembersPolicy._id,
-    addRolesPolicy._id,
     viewRolesPolicy._id,
     editRolesPolicy._id,
     deleteRolesPolicy._id,
-    addShortcutsPolicy._id,
     viewShortcutsPolicy._id,
     editShortcutsPolicy._id,
     deleteShortcutsPolicy._id,
-    addCardsPolicy._id,
     viewCardsPolicy._id,
     editCardsPolicy._id,
-    deleteCardsPolicy.id,
+    deleteCardsPolicy._id,
     viewSettingsPolicy._id,
     editSettingsPolicy._id,
   ];
@@ -179,13 +177,35 @@ export const init = async (dbConnection: any) => {
     viewBoardPolicy._id,
     editBoardPolicy._id,
     deleteBoardPolicy._id,
-    addShortcutsPolicy._id,
     viewShortcutsPolicy._id,
     editShortcutsPolicy._id,
     deleteShortcutsPolicy._id,
-    addCardsPolicy._id,
     viewCardsPolicy._id,
     editCardsPolicy._id,
+  ];
+
+  const productManagerPermissions = [
+    viewProjectPolicy._id,
+    editProjectPolicy._id,
+    deleteProjectPolicy._id,
+    createBoardPolicy._id,
+    viewBoardPolicy._id,
+    editBoardPolicy._id,
+    deleteBoardPolicy._id,
+    viewMembersPolicy._id,
+    editMembersPolicy._id,
+    deleteMembersPolicy._id,
+    viewRolesPolicy._id,
+    editRolesPolicy._id,
+    deleteRolesPolicy._id,
+    viewShortcutsPolicy._id,
+    editShortcutsPolicy._id,
+    deleteShortcutsPolicy._id,
+    viewCardsPolicy._id,
+    editCardsPolicy._id,
+    deleteCardsPolicy._id,
+    viewSettingsPolicy._id,
+    editSettingsPolicy._id,
   ];
 
   const guestPermissions = [viewProjectPolicy._id, viewBoardPolicy._id, viewShortcutsPolicy._id];
@@ -194,7 +214,7 @@ export const init = async (dbConnection: any) => {
     name: 'Admin',
     slug: 'admin',
     isPublic: true,
-    permissions: permissions,
+    permissions: adminPermissions,
   });
   const developerRole = new roleModel({
     name: 'Developer',
@@ -206,7 +226,7 @@ export const init = async (dbConnection: any) => {
     name: 'Product Manager',
     slug: 'product-manager',
     isPublic: true,
-    permissions: permissions,
+    permissions: productManagerPermissions,
   });
   const guestRole = new roleModel({
     name: 'Guest',

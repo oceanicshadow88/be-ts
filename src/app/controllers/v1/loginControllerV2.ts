@@ -53,7 +53,7 @@ export const autoFetchUserInfo = asyncHandler(
 
     try {
       if (!req.userId) return res.status(status.FORBIDDEN).send();
-      res.send({ user: req.user, token: req.token, refreshToken: req.refreshToken, isOwner: req.isOwner });
+      res.send({ user: req.user, token: req.token, refreshToken: req.refreshToken });
     } catch (e) {
       next(e);
     }

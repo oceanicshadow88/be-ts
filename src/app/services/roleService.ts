@@ -59,7 +59,7 @@ export const updateUserProjectRole = async (req: Request) => {
 
   for (const element of user.projectsRoles) {
     if (element?.project?.toString() === projectId) {
-      element.roleId = roleId;
+      element.role = roleId;
     }
   }
   const updateUser = await user.save();
@@ -97,7 +97,7 @@ export const inviteUserToProject = async (req: Request) => {
 
   const project = await projectModel.findById(projectId);
 
-  let validationToken = '';
+  let isUserActive = false;
   let user = await userModel.findOne({ email });
   if (!user) {
     const activeCode = randomStringGenerator(16);
@@ -114,19 +114,22 @@ export const inviteUserToProject = async (req: Request) => {
       user._id,
       {
         $push: {
-          projectsRoles: [{ project: projectId, roleId: roleId }],
+          projectsRoles: [{ project: projectId, role: roleId }],
         },
       },
       { new: true },
     );
   }
 
-  if (!user.active)
-    validationToken = jwt.sign({ email, activeCode: user.activeCode }, config.emailSecret);
+  if (user.active) { 
+    isUserActive = true;
+  }
+
+  const accessToken = jwt.sign({ id: user._id, email, role: roleId, activeCode: user.activeCode }, config.emailSecret);
 
   const name = user.active ? user.name : '';
-  invite(user.email, name, validationToken, 'haha', project.name, req.headers.origin ?? '');
-  return user;
+  invite(user.email, name, isUserActive, accessToken, roleId, project.name, req.headers.origin ?? '');
+  return { user };
 };
 
 export const getDefaultRoles = async (req: Request) => {
