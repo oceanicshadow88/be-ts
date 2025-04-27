@@ -18,7 +18,7 @@
     "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\"",
     "lint": "eslint src/",
     "prepare": "husky install",
-    "postinstall": "chmod +x .husky/*",
+    "postinstall": "node -e \"try { require('husky').install() } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\"",
     "load-test": "artillery run artilleryio-load-test.yml --output .artilleryio/test.json",
     "load-test-report": "artillery report --output .artilleryio/report.html .artilleryio/test.json"
   },
