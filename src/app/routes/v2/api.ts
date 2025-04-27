@@ -61,6 +61,7 @@ import * as retroBoardController from '../../controllers/v1/retroBoardController
 import * as retroItemController from '../../controllers/v1/retroItemController';
 import * as epicController from '../../controllers/v1/epicController';
 import * as epicValidator from '../../validations/epicValidation';
+import * as importController from '../../controllers/v1/importController';
 import { config } from '../../config/app';
 
 // ----------------------- register -------------------------
@@ -100,6 +101,7 @@ router.post('/emailus', contactValidation.contactForm, emailUsController.contact
 //TODO: typo error
 router.get('/tenants', tenantValidations.index, tenantControllers.index);
 router.post('/tenants', tenantValidations.store, tenantControllers.store);
+router.get('/tenants/owner', tenantValidations.checkTenantOwnership, tenantControllers.checkTenantOwnership);
 
 // ----------------------- login -------------------------
 router.post('/login', loginValidation.login, loginControllerV2.login);
@@ -381,6 +383,17 @@ router.delete(
   epicController.destroy,
 );
 
+// csv
+router.post(
+  '/import-project',
+  multerMiddleware.memoryUpload.single('file'),
+  importController.importProjectByCsv,
+);
+router.post(
+  '/import-project/large',
+  multerMiddleware.diskUpload.single('file'),
+  importController.importProjectByCsv,
+);
 // dashboard
 router.get('/projects/:projectId/dashboards', dashboardValidations.show, dashboardController.show);
 router.get(

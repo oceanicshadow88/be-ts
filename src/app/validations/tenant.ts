@@ -11,4 +11,8 @@ const index = [
   check('domain', 'Domain Empty').notEmpty(),
 ];
 
-export { store, index };
+const checkTenantOwnership = [
+  check('userId', 'UserId Empty').notEmpty(),
+];
+
+export { store, index, checkTenantOwnership };
