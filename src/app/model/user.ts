@@ -13,7 +13,7 @@ export interface IProjectRole {
 export interface IUser {
   email: string;
   password?: string;
-  isAdmin?: number;
+  isSuperUser?: number;
   refreshToken?: string;
   activeCode?: string;
   active: boolean;
