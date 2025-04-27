@@ -89,7 +89,7 @@ export const emailSender = (email: string, validationCode: string, domain: strin
     name: email,
     appName: 'TECHSCRUMAPP',
     domain,
-    url: 'verify-v2',
+    url: 'verify',
     token: validationCode,
     color: '#7291F7',
     border: '5px solid #7291F7',
@@ -102,13 +102,14 @@ export const emailSender = (email: string, validationCode: string, domain: strin
 export const invite = (
   email: string,
   name: string,
-  validationCode: string,
+  isUserActive: boolean,
+  accessToken: string,
   roleType: string,
   projectName: string,
   domain: string,
 ) => {
   // Create sendEmail params
-  const url = validationCode === '' ? 'projects' : 'verify';
+  const url = isUserActive ? 'projects' : 'verify';
   const templateData = {
     name,
     appName: 'TECHSCRUMAPP',
@@ -118,7 +119,7 @@ export const invite = (
     border: '5px solid #7291F7',
     year: '2022',
     project: projectName,
-    token: `token=${validationCode}`,
+    token: `token=${accessToken}`,
     roleType: roleType,
   };
   emailSenderTemplate(email, templateData, 'Access', cb);

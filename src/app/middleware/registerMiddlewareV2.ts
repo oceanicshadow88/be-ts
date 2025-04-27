@@ -20,7 +20,7 @@ const authenticationEmailTokenMiddlewareV2 = async (
     if (err) return res.status(status.FORBIDDEN).send();
     const result:any = await jwt.verify(token, config.emailSecret);
     const resUserDbConnection = req.tenantsConnection;
-   
+
     const userModel = await User.getModel(resUserDbConnection);
     const user = await userModel.findById(result.id);
     

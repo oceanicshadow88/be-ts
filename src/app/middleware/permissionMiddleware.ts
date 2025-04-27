@@ -21,9 +21,9 @@ const hasPermission = async (role: IRole, slug: string, req: Request) => {
 
 const getProjectRoleId = (projectId: string, projectsRoles: IProjectRole[]) => {
   let roleId = null;
-  projectsRoles.forEach((element: { project: { toString: () => string }; roleId: any }) => {
+  projectsRoles.forEach((element: { project: { toString: () => string }; role: any }) => {
     if (element.project.toString() === projectId.toString()) {
-      roleId = element.roleId;
+      roleId = element.role;
     }
   });
   return roleId;
@@ -40,11 +40,10 @@ const permission = (slug: string) => {
     const projectId = req.params.id || req.params.projectId;
     const projectsRoles = user.projectsRoles;
 
-    if (user.isAdmin || (await checkIsOwner(projectId, user.id, req))) {
+    if (user.isSuperUser || (await checkIsOwner(projectId, user.id, req))) {
       next();
       return;
     }
-
     const roleId = getProjectRoleId(projectId, projectsRoles);
 
     if (!roleId) {

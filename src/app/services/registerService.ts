@@ -10,7 +10,7 @@ const emailRegister = async (email: string, dbConnection: any, domain: string) =
   try {
     const user = await User.getModel(dbConnection).findOneAndUpdate(
       { email },
-      { email, activeCode, isAdmin: 1 },
+      { email, activeCode, isSuperUser: 0 },
       { new: true, upsert: true },
     );
 

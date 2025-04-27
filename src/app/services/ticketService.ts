@@ -213,9 +213,7 @@ const getDiffBetweenTickets = (
 export const updateTicket = async (req: Request) => {
   const { id } = req.params;
   const { sprintId, ...restBody } = req.body;
-  if (sprintId) {
-    restBody.sprint = sprintId;
-  }
+  restBody.sprint = sprintId;
   const TicketModel = Ticket.getModel(req.dbConnection);
   const UserModel = User.getModel(req.tenantsConnection);
 
