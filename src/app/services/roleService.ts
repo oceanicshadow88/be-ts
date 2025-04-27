@@ -114,6 +114,7 @@ export const inviteUserToProject = async (req: Request) => {
       user._id,
       {
         $push: {
+          tenants: req.tenantId,
           projectsRoles: [{ project: projectId, role: roleId }],
         },
       },
