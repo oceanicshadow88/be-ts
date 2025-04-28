@@ -2,7 +2,7 @@ import mongoose, { Types } from 'mongoose';
 
 const commentsSchema = new mongoose.Schema(
   {
-    ticketId: {
+    ticket: {
       ref: 'ticket',
       type: Types.ObjectId,
       required: true,
