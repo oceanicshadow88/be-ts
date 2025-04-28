@@ -10,39 +10,82 @@ import * as Project from '../model/project';
 import * as Epic from '../model/epic';
 import { ActivityType, IChange, ITicket, ITicketDocument } from '../types';
 import mongoose, { Mongoose, Types } from 'mongoose';
+import escapeStringRegexp = require('escape-string-regexp');
 
-/** Find tickets with given filter
- * @param queryFilter
- * @param userFilter
- * @param typeFilter
- * @param labelFilter
- * @param dbConnection Mongoose
- * @returns Document result
- */
-export const findTickets = async (
-  queryFilter: object,
-  userFilter: object,
-  typeFilter: object,
-  epicFilter: object,
-  labelFilter: object,
+export interface TicketFilter {
+  title?: string;
+  project?: string;
+  assign?: string[] | 'unassigned';
+  type?: string[];
+  epic?: string[];
+  tags?: string[];
+  sprintId?: string | null;
+  isActive?: boolean;
+  _id?: string;
+}
+
+export const findTicketsV2 = async (
+  filter: TicketFilter,
   dbConnection: Mongoose,
   tenantConnection: Mongoose,
 ) => {
   const TicketModel = Ticket.getModel(dbConnection);
+  const TypeModel = Type.getModel(dbConnection);
+  const LabelModel = Label.getModel(dbConnection);
+  const CommentModel = Comment.getModel(dbConnection);
+  const ProjectModel = Project.getModel(dbConnection);
+  const userModel = await User.getModel(tenantConnection);
 
   const UserFields = 'avatarIcon name email';
 
-  const userModel = await User.getModel(tenantConnection);
   try {
-    const tickets = await TicketModel.find(queryFilter)
-      .find(userFilter)
-      .find(typeFilter)
-      .find(epicFilter)
-      .find(labelFilter)
-      .populate({ path: 'type', model: Type.getModel(dbConnection) })
+    const mongoFilter: {
+      project?: string;
+      _id?: string;
+      sprintId?: string | null;
+      isActive?: boolean;
+      title?: RegExp;
+      assign?: null | { $in: string[] };
+      type?: { $in: string[] };
+      epic?: { $in: string[] };
+      tags?: { $all: string[] };
+    } = {};
+
+    if (filter.project) mongoFilter.project = filter.project;
+    if (filter._id) mongoFilter._id = filter._id;
+    if (filter.sprintId !== undefined) mongoFilter.sprintId = filter.sprintId;
+    if (filter.isActive !== undefined) mongoFilter.isActive = filter.isActive;
+
+    if (filter.title) {
+      const escapeRegex = escapeStringRegexp(filter.title);
+      mongoFilter.title = new RegExp(escapeRegex, 'i');
+    }
+
+    if (filter.assign) {
+      if (filter.assign === 'unassigned') {
+        mongoFilter.assign = null;
+      } else {
+        mongoFilter.assign = { $in: filter.assign };
+      }
+    }
+
+    if (filter.type?.length) {
+      mongoFilter.type = { $in: filter.type };
+    }
+
+    if (filter.epic?.length) {
+      mongoFilter.epic = { $in: filter.epic };
+    }
+
+    if (filter.tags?.length) {
+      mongoFilter.tags = { $all: filter.tags };
+    }
+
+    const tickets = await TicketModel.find(mongoFilter)
+      .populate({ path: 'type', model: TypeModel })
       .populate({
         path: 'labels',
-        model: Label.getModel(dbConnection),
+        model: LabelModel,
         select: 'name slug',
       })
       .populate({
@@ -57,16 +100,14 @@ export const findTickets = async (
       })
       .populate({
         path: 'comments',
-        model: Comment.getModel(dbConnection),
+        model: CommentModel,
       })
-      .populate({ path: 'project', model: Project.getModel(dbConnection) })
+      .populate({ path: 'project', model: ProjectModel })
       .sort({ createdAt: 1 });
 
-    const activeTickets = tickets.filter((e: ITicket) => e.isActive === true);
-
-    return activeTickets;
+    return tickets.filter((ticket: ITicket) => ticket.isActive === true);
   } catch (error: any) {
-    return error;
+    throw new Error(`Error finding tickets: ${error.message}`);
   }
 };
 
@@ -97,15 +138,7 @@ export const createTicket = async (req: Request) => {
     throw new Error('Create Activity failed');
   }
 
-  const result = await findTickets(
-    { _id: ticket._id },
-    {},
-    {},
-    {},
-    {},
-    req.dbConnection,
-    req.tenantsConnection,
-  );
+  const result = await findTicketsV2({ _id: ticket._id }, req.dbConnection, req.tenantsConnection);
   return result[0];
 };
 
@@ -258,15 +291,7 @@ export const updateTicket = async (req: Request) => {
     throw new Error('Create Activity failed');
   }
 
-  const result = await findTickets(
-    { _id: id },
-    {},
-    {},
-    {},
-    {},
-    req.dbConnection,
-    req.tenantsConnection,
-  );
+  const result = await findTicketsV2({ _id: id }, req.dbConnection, req.tenantsConnection);
   return result[0];
 };
 
@@ -329,13 +354,5 @@ export const getTicketsByEpic = async (req: Request) => {
 };
 
 export const getShowTicket = (req: Request) => {
-  return findTickets(
-    { _id: req.params.id },
-    {},
-    {},
-    {},
-    {},
-    req.dbConnection,
-    req.tenantsConnection,
-  );
+  return findTicketsV2({ _id: req.params.id }, req.dbConnection, req.tenantsConnection);
 };
