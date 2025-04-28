@@ -68,13 +68,12 @@ export const getAllBacklogTickets = async (req: Request) => {
   // Backlog tickets are ticket whose sprintId is null
   // Sprint tickets are ticket whose sprintId is not null
   const allTickets = await findTickets(
+    req.dbConnection,
+    req.tenantsConnection,
     fuzzySearchFilter,
     userFilter,
     typeFilter,
     epicFilter,
-    {},
-    req.dbConnection,
-    req.tenantsConnection,
   );
   return allTickets;
 };
@@ -123,13 +122,12 @@ export const filterBacklog = async (req: Request) => {
   }
   const sprints = await findSprints(projectId, false, req.dbConnection);
   const tickets = await findTickets(
+    req.dbConnection,
+    req.tenantsConnection,
     { ...fuzzySearchFilter, sprintId: null },
     { ...userFilter, sprintId: null },
     { ...typeFilter, sprintId: null },
-    {},
     { ...labelFilter, sprintId: null },
-    req.dbConnection,
-    req.tenantsConnection,
   );
 
   return {
@@ -152,5 +150,9 @@ export const getBacklogTickets = async (req: Request) => {
 
   const regex = new RegExp(escapeRegex);
   const fuzzySearchFilter = { title: regex, project: projectId };
-  return findTickets(fuzzySearchFilter, {}, {}, {}, {}, req.dbConnection, req.tenantsConnection);
+  return findTickets(
+    req.dbConnection, 
+    req.tenantsConnection,
+    fuzzySearchFilter,
+  );
 };
