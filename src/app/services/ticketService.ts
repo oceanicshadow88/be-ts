@@ -11,12 +11,10 @@ import * as Epic from '../model/epic';
 import { ActivityType, IChange, ITicket, ITicketDocument } from '../types';
 import mongoose, { Mongoose, Types } from 'mongoose';
 
-
-
-
-/** Find tickets with given filter
+/** Find tickets with given filters
  * @param dbConnection Mongoose
- * @param filters Filters to find tickets
+ * @param tenantConnection Mongoose
+ * @param filters Filters to find tickets, must be in the format of {key: value}
  * @returns Document result
  */
 export const findTickets = async (
