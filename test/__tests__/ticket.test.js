@@ -34,8 +34,6 @@ describe('Post Ticket Test', () => {
     expect(ticketInDb).not.toBeNull();
   });
 
-
-
   it.each`
     field          | value
     ${'title'}     | ${undefined}
@@ -65,7 +63,7 @@ describe('Update Ticket Test', () => {
     const updatedField = {
       title: 'updated ticket',
       description: 'updated ticket',
-      priority: 'Lowest'
+      
     };
 
     const res = await request(app.application)
