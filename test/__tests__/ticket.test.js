@@ -7,14 +7,6 @@ import TicketBuilder from './builders/ticketBuilder';
 import ProjectBuilder from './builders/projectBuilder';
 import * as Ticket from '../../src/app/model/ticket';
 
-
-
-/** todo tests
- * ticketController.show - done
- * ticketController.store,
- * ticketController.update,
-**/
-
 describe('Get Ticket Test', () => {
   it('should show one ticket by given a valid id', async () => {
     const ticket = await new TicketBuilder().save();
