@@ -11,6 +11,9 @@ import * as Epic from '../model/epic';
 import { ActivityType, IChange, ITicket, ITicketDocument } from '../types';
 import mongoose, { Mongoose, Types } from 'mongoose';
 
+
+
+
 /** Find tickets with given filter
  * @param dbConnection Mongoose
  * @param filters Filters to find tickets
@@ -19,21 +22,28 @@ import mongoose, { Mongoose, Types } from 'mongoose';
 export const findTickets = async (
   dbConnection: Mongoose,
   tenantConnection: Mongoose,
-  ...filters: object[]
+  ...filters: Record<string, any>[]
 ) => {
-  const TicketModel = Ticket.getModel(dbConnection);
-
-  const UserFields = 'avatarIcon name email';
-
-  const userModel = await User.getModel(tenantConnection);
-
-  const mergedFilter = Object.assign({}, ...filters);
   try {
-    const tickets = await TicketModel.find(mergedFilter)
-      .populate({ path: 'type', model: Type.getModel(dbConnection) })
+    const ticketModel = await Ticket.getModel(dbConnection);
+
+    const typeModel = Type.getModel(dbConnection);
+
+    const labelModel = Label.getModel(dbConnection);
+
+    const UserFields = 'avatarIcon name email';
+
+    const userModel = await User.getModel(tenantConnection);
+
+    const commentModel = await Comment.getModel(dbConnection);
+
+    const mergedFilter = Object.assign({}, ...filters);
+
+    const tickets = await ticketModel.find(mergedFilter)
+      .populate({ path: 'type', model: typeModel })
       .populate({
         path: 'labels',
-        model: Label.getModel(dbConnection),
+        model: labelModel,
         select: 'name slug',
       })
       .populate({
@@ -48,7 +58,7 @@ export const findTickets = async (
       })
       .populate({
         path: 'comments',
-        model: Comment.getModel(dbConnection),
+        model: commentModel,
       })
       .populate({ path: 'project', model: Project.getModel(dbConnection) })
       .sort({ createdAt: 1 });
