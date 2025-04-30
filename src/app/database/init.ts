@@ -3,6 +3,7 @@ import * as Permission from '../model/permission';
 import * as Type from '../model/type';
 import * as retroBoardServices from '../services/retroBoardService';
 import { capitalizeFirstLetter } from '../utils/helper';
+import { Mongoose } from 'mongoose';
 
 export const TICKET_TYPES = [
   {
@@ -41,7 +42,7 @@ export const createTicketType = async (dbConnection: string) => {
 };
 
 const createPolicies = (
-  dbConnection: any,
+  dbConnection: Mongoose,
   slug: string,
   hasCreatePolicy = true,
   hasEditPolicy = true,
