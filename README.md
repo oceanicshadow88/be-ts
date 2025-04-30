@@ -34,7 +34,7 @@ n/a
 
 One time command
 
-- docker compose up
+- docker compose up -d
 - cp .env.example .env `(values ask Kitman/team members)`
 - yarn build
 - yarn setup
