@@ -7,7 +7,7 @@ import config from '../config/app';
 declare module 'express-serve-static-core' {
   interface Request {
     userId?: string;
-    user?: object;
+    user?: User.IUser;
     verifyEmail?: string;
     token?: string;
     refreshToken?: string;
@@ -64,7 +64,10 @@ const authenticationRefreshTokenMiddleware = async (
         refreshToken: verifyUser.refreshToken,
       });
       req.user = user;
-
+      if (!user) {
+        res.status(status.FORBIDDEN).send();
+        return;
+      }
       if (user._id.toString() === req.ownerId) {
         req.isOwner = true;
       } else {
@@ -89,7 +92,4 @@ const authenticationRefreshTokenMiddleware = async (
   res.status(status.FORBIDDEN).send();
 };
 
-export {
-  authenticationTokenMiddleware,
-  authenticationRefreshTokenMiddleware,
-};
+export { authenticationTokenMiddleware, authenticationRefreshTokenMiddleware };

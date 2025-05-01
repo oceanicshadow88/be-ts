@@ -161,13 +161,32 @@ export const showProject = async (req: Request) => {
     .findOne({ _id: req.params.id, isDelete: false })
     .populate({ path: 'projectLead', model: userModel })
     .populate({ path: 'owner', model: userModel });
+  if (req.ownerId === req.userId) {
+    return project;
+  }
+
+  const accessibleProjectIds =
+    req.user?.projectsRoles?.map((pr: any) => pr.project.toString()) ?? [];
+  if (!accessibleProjectIds.includes(req.params.id)) {
+    return {};
+  }
   return project;
 };
 
 export const getAllProjects = async (req: Request) => {
   const userModel = await User.getModel(req.tenantsConnection);
-  return Project.getModel(req.dbConnection)
-    .find({ isDelete: false, tenant: req.tenantId })
-    .populate({ path: 'projectLead', model: userModel })
-    .populate({ path: 'owner', model: userModel });
+  const accessibleProjectIds =
+    req.user?.projectsRoles?.map((pr: any) => pr.project.toString()) ?? [];
+
+  const result =
+    (await Project.getModel(req.dbConnection)
+      .find({ isDelete: false, tenant: req.tenantId })
+      .populate({ path: 'projectLead', model: userModel })
+      .populate({ path: 'owner', model: userModel })) ?? [];
+
+  if (req.ownerId === req.userId) {
+    return result;
+  }
+
+  return result.filter((item: any) => accessibleProjectIds.includes(item._id.toString()));
 };
