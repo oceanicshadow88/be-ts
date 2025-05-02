@@ -38,7 +38,7 @@ export const findTickets = async (
     const projectModel = await Project.getModel(dbConnection);
 
     const mergedFilter = Object.assign({}, ...filters);
-
+  
     const tickets = await ticketModel.find(mergedFilter)
       .populate({ path: 'type', model: typeModel })
       .populate({
@@ -60,7 +60,10 @@ export const findTickets = async (
         path: 'comments',
         model: commentModel,
       })
-      .populate({ path: 'project', model: projectModel})
+      .populate({ 
+        path: 'project', 
+        model: projectModel
+      })
       .sort({ createdAt: 1 });
 
     const activeTickets = tickets.filter((e: ITicket) => e.isActive === true);

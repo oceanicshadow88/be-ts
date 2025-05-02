@@ -4,14 +4,14 @@ import { replaceId } from '../../services/replaceService';
 import httpStatus from 'http-status';
 import {
   filterBacklog,
-  getAllBacklogTickets,
+  fetchBacklogTickets,
   getBacklogTickets,
 } from '../../services/backlogService';
 import { validationResult } from 'express-validator';
 
 // GET all
 export const index = asyncHandler(async (req: Request, res: Response) => {
-  const result = await getAllBacklogTickets(req);
+  const result = await fetchBacklogTickets(req);
   return res.status(httpStatus.OK).json(replaceId(result));
 });
 

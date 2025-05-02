@@ -1,158 +1,171 @@
 import escapeStringRegexp from 'escape-string-regexp';
 import { Request } from 'express';
-import { findSprints } from './sprintService';
 import { findTickets } from './ticketService';
 
-interface IBaseFilter {
-  project: string;
-  sprintId?: null;
+class BacklogFilterBuilder {
+  private readonly filters: Record<string, any>;
+
+  constructor(projectId: string) {
+    this.filters = {};
+    this.filters.project = projectId;
+  }
+
+  withTitle(title: any) {
+    const escapeRegex: string = escapeStringRegexp(title);
+    const regex: RegExp = new RegExp(escapeRegex, 'i');
+    this.filters.title = regex;
+    return this;
+  }
+
+  withType(ticketTypes: any) {
+    const ticketTypeIds = ticketTypes.split(',');
+    this.filters.type = { $in: ticketTypeIds };
+    return this;
+  }
+
+  withEpic(ticketEpics: any) {
+    const ticketEpicIds = ticketEpics.split(',');
+    this.filters.epic = { $in: ticketEpicIds };
+    return this;
+  }
+
+  withUsers(users: any) {
+    const userIds = users.split(',');
+    this.filters.$or = [
+      { assign: { $in: userIds.filter((id: string) => id !== 'unassigned') } },
+      ...(userIds.includes('unassigned') ? [{ assign: null }] : []),
+    ];
+    return this;
+  }
+
+  withLabels(labels: any) {
+    const labelIds = labels.split(',');
+    this.filters.tags = { $all: labelIds };
+    return this;
+  }
+
+  withSprint(sprintId: any) {
+    this.filters.sprint = sprintId;
+    return this;
+  }
+
+  build() {
+    return {
+      ...this.filters,
+    };
+  } 
 }
 
-interface IFuzzySearchFilter extends IBaseFilter {
-  title?: RegExp;
-}
-
-interface ITypeFilter extends IBaseFilter {
-  type?: { $in: string[] };
-}
-
-interface IEpicFilter extends IBaseFilter {
-  epic?: { $in: string[] };
-}
-
-interface IBacklogUserFilter extends IBaseFilter {
-  assign?: { $in: string[] };
-}
-
-interface IAllBacklogUserFilter extends IBaseFilter {
-  $or?: Array<{
-    assign: { $in: string[] } | null;
-  }>;
-}
-
-interface ILabelFilter extends IBaseFilter {
-  tags?: { $all: string[] };
-}
-
-export const getAllBacklogTickets = async (req: Request) => {
+export const fetchBacklogTickets = async (req: Request) => {
   const { projectId } = req.params;
-  const { title, ticketTypes, ticketEpics, users } = req.query;
+  const { title, ticketTypes, ticketEpics, users, labels } = req.query;
 
-  let fuzzySearchFilter: IFuzzySearchFilter = { project: projectId };
-  let typeFilter: ITypeFilter = { project: projectId };
-  let userFilter: IAllBacklogUserFilter = { project: projectId };
-  let epicFilter: IEpicFilter = { project: projectId };
+  const filters = new BacklogFilterBuilder(projectId);
+
   if (title) {
-    const escapeRegex = escapeStringRegexp(title.toString());
-    const regex = new RegExp(escapeRegex, 'i');
-    fuzzySearchFilter = { title: regex, project: projectId };
+    filters.withTitle(title);
   }
   if (ticketTypes) {
-    const ticketTypeIds = ticketTypes.toString().split(',');
-    typeFilter = { type: { $in: ticketTypeIds }, project: projectId };
+    filters.withType(ticketTypes);
   }
   if (ticketEpics) {
-    const ticketEpicIds = ticketEpics.toString().split(',');
-    epicFilter = { epic: { $in: ticketEpicIds }, project: projectId };
+    filters.withEpic(ticketEpics);
   }
   if (users) {
-    const userIds = users.toString().split(',');
-    userFilter = {
-      $or: [
-        { assign: { $in: userIds.filter((id) => id !== 'unassigned') } }, // Include filtered IDs
-        ...(userIds.includes('unassigned') ? [{ assign: null }] : []), // Add `null` condition if 'unassigned' is present
-      ],
-      project: projectId,
-    };
+    filters.withUsers(users);
   }
+  if (labels) {
+    filters.withLabels(labels);
+  }
+
+  // filters.withSprint(null); 
+  //逻辑是否有误？ 前端现在显示了有sprint的ticket
+
   // Backlog tickets are ticket whose sprintId is null
   // Sprint tickets are ticket whose sprintId is not null
   const allTickets = await findTickets(
     req.dbConnection,
     req.tenantsConnection,
-    fuzzySearchFilter,
-    userFilter,
-    typeFilter,
-    epicFilter,
+    filters.build(),
   );
   return allTickets;
 };
 
-export const filterBacklog = async (req: Request) => {
-  const { projectId, userCase, typeCase, labelCase } = req.params;
-  const { title } = req.query;
-  if (!projectId) throw new Error('no project provided');
+// export const filterBacklog = async (req: Request) => {
+//   const { projectId, userCase, typeCase, labelCase } = req.params;
+//   const { title } = req.query;
+//   if (!projectId) throw new Error('no project provided');
 
-  let fuzzySearchFilter: IFuzzySearchFilter = { project: projectId };
-  let userFilter: IBacklogUserFilter;
-  let typeFilter: ITypeFilter;
-  let labelFilter: ILabelFilter;
+//   let fuzzySearchFilter: IFuzzySearchFilter = { project: projectId };
+//   let userFilter: IBacklogUserFilter;
+//   let typeFilter: ITypeFilter;
+//   let labelFilter: ILabelFilter;
 
-  enum Cases {
-    searchAll = 'all',
-  }
+//   enum Cases {
+//     searchAll = 'all',
+//   }
 
-  if (title) {
-    const escapeRegex = escapeStringRegexp(title.toString());
-    const regex = new RegExp(escapeRegex, 'i');
-    fuzzySearchFilter = { title: regex, project: projectId };
-  }
-  if (userCase === Cases.searchAll) {
-    userFilter = { project: projectId };
-  } else {
-    const userIds = userCase.split('-');
-    userFilter = {
-      assign: { $in: userIds },
-      project: projectId,
-    };
-  }
+//   if (title) {
+//     const escapeRegex = escapeStringRegexp(title.toString());
+//     const regex = new RegExp(escapeRegex, 'i');
+//     fuzzySearchFilter = { title: regex, project: projectId };
+//   }
+//   if (userCase === Cases.searchAll) {
+//     userFilter = { project: projectId };
+//   } else {
+//     const userIds = userCase.split('-');
+//     userFilter = {
+//       assign: { $in: userIds },
+//       project: projectId,
+//     };
+//   }
 
-  if (typeCase === Cases.searchAll) {
-    typeFilter = { project: projectId };
-  } else {
-    const ticketTypeIds = typeCase.split('-');
-    typeFilter = { type: { $in: ticketTypeIds }, project: projectId };
-  }
+//   if (typeCase === Cases.searchAll) {
+//     typeFilter = { project: projectId };
+//   } else {
+//     const ticketTypeIds = typeCase.split('-');
+//     typeFilter = { type: { $in: ticketTypeIds }, project: projectId };
+//   }
 
-  if (labelCase === Cases.searchAll) {
-    labelFilter = { project: projectId };
-  } else {
-    const labelIds = labelCase.split('-');
-    labelFilter = { tags: { $all: labelIds }, project: projectId };
-  }
-  const sprints = await findSprints(projectId, false, req.dbConnection);
-  const tickets = await findTickets(
-    req.dbConnection,
-    req.tenantsConnection,
-    { ...fuzzySearchFilter, sprintId: null },
-    { ...userFilter, sprintId: null },
-    { ...typeFilter, sprintId: null },
-    { ...labelFilter, sprintId: null },
-  );
+//   if (labelCase === Cases.searchAll) {
+//     labelFilter = { project: projectId };
+//   } else {
+//     const labelIds = labelCase.split('-');
+//     labelFilter = { tags: { $all: labelIds }, project: projectId };
+//   }
+//   const sprints = await findSprints(projectId, false, req.dbConnection);
+//   const tickets = await findTickets(
+//     req.dbConnection,
+//     req.tenantsConnection,
+//     { ...fuzzySearchFilter, sprintId: null },
+//     { ...userFilter, sprintId: null },
+//     { ...typeFilter, sprintId: null },
+//     { ...labelFilter, sprintId: null },
+//   );
 
-  return {
-    backlog: {
-      cards: tickets,
-    },
-    sprints: sprints,
-  };
-};
+//   return {
+//     backlog: {
+//       cards: tickets,
+//     },
+//     sprints: sprints,
+//   };
+// };
 
-export const getBacklogTickets = async (req: Request) => {
-  const { projectId } = req.params;
-  const { query } = req.query;
+// export const getBacklogTickets = async (req: Request) => {
+//   const { projectId } = req.params;
+//   const { query } = req.query;
 
-  if (!projectId) throw new Error('no project provided');
-  if (!query) throw new Error('No Query Found');
+//   if (!projectId) throw new Error('no project provided');
+//   if (!query) throw new Error('No Query Found');
 
-  // escape unsafe regex
-  const escapeRegex = escapeStringRegexp(query.toString());
+//   // escape unsafe regex
+//   const escapeRegex = escapeStringRegexp(query.toString());
 
-  const regex = new RegExp(escapeRegex);
-  const fuzzySearchFilter = { title: regex, project: projectId };
-  return findTickets(
-    req.dbConnection, 
-    req.tenantsConnection,
-    fuzzySearchFilter,
-  );
-};
+//   const regex = new RegExp(escapeRegex);
+//   const fuzzySearchFilter = { title: regex, project: projectId };
+//   return findTickets(
+//     req.dbConnection, 
+//     req.tenantsConnection,
+//     fuzzySearchFilter,
+//   );
+// };
