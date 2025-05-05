@@ -399,7 +399,11 @@ router.post(
 //export
 router.get(
   '/export-project/fields',
-  exportController.ticketExportFields,
+  exportController.exportTicketFields,
+);
+router.get(
+  '/export-project/:projectId/tickets',
+  exportController.exportTicketsCsv,
 );
 // dashboard
 router.get('/projects/:projectId/dashboards', dashboardValidations.show, dashboardController.show);

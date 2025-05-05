@@ -17,7 +17,9 @@ export const exportTicketsCsvStream = async (
   res: Response,
 ) => {
   const TicketModel = Ticket.getModel(dbConnection);
-  const csvStream = format({ headers: fields });
+  const allFields = Object.keys(ticketSchema.paths).filter(key => !['_id'].includes(key));
+  const exportFields = fields && fields.length > 0 ? fields : allFields;
+  const csvStream = format({ headers: exportFields });
   csvStream.pipe(res);
   const cursor = TicketModel
     .find({ projectId })
