@@ -13,9 +13,6 @@ let tenantId = '62e333606fb0da0a12dcfe78';
 let defaultUser = null;
 let defaultTicketType = null;
 let defaultStatus = null;
-let defaultLabel = null;
-let defaultEpic = null;
-let defaultSprint = null;
 
 async function connect() {
   if (!isInitialized) {
@@ -38,15 +35,12 @@ async function createDefaultData() {
   defaultUser = user;
   const types = await TypeBuilder.createDefaultTypes();
   const statuses = await StatusBuilder.createDefaultStatuses();
-  const label = await LabelBuilder.createDefaultLabels();
-  const epic = await EpicBuilder.createDefaultEpic();
-  const sprint = await SprintBuilder.createDefaultSprint();
+  const label = await new LabelBuilder().save();
+  const epic = await new EpicBuilder().save();
+  const sprint = await new SprintBuilder().save();
 
   defaultTicketType = types[0];
   defaultStatus = statuses[0];
-  defaultLabel = label;
-  defaultEpic = epic;
-  defaultSprint = sprint;
 }
 
 async function clearDatabase() {
@@ -70,15 +64,6 @@ export default {
   },
   get defaultStatus() {
     return defaultStatus;
-  },
-  get defaultLabel() {
-    return defaultLabel;
-  },
-  get defaultEpic() {
-    return defaultEpic;
-  },
-  get defaultSprint() {
-    return defaultSprint;
   },
   tenantId,
 };
