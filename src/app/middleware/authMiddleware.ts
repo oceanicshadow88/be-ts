@@ -15,30 +15,36 @@ declare module 'express-serve-static-core' {
 }
 
 const authenticationTokenMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
+  const token = req.headers.authorization?.split(' ')[1];
 
-  const authType = authHeader?.split(' ')[0];
-  const authToken = authHeader?.split(' ')[1];
+  if (!token) {
+    return res.status(status.UNAUTHORIZED).json({ message: 'Token not provided' });
+  }
 
-  if (!authHeader || !authToken) return res.sendStatus(401);
-  if (authType === 'Bearer') {
-    jwt.verify(authToken, config.accessSecret, async (err: any) => {
-      if (err) return res.status(status.FORBIDDEN).send();
-      const verifyUser: any = jwt.verify(authToken, config.accessSecret);
-      const userDb = await User.getModel(req.tenantsConnection);
-      const user = await userDb.findOne({ _id: verifyUser.id });
-      if (!user) {
-        res.status(status.FORBIDDEN).send();
-        return;
+  jwt.verify(token, config.accessSecret, async (err, decoded) => {
+    if (err) {
+      if (err.name === 'TokenExpiredError') {
+        return res.status(status.UNAUTHORIZED).json({ message: 'Access token expired' });
       }
+      return res.status(status.UNAUTHORIZED).json({ message: 'Invalid token' });
+    }
+
+    try {
+      const userModel = await User.getModel(req.tenantsConnection);
+      if (!decoded || typeof decoded !== 'object' || !('id' in decoded))
+        throw new Error('Invalid token payload');
+      const user = await userModel.findById(decoded.id);
+      if (!user) throw new Error('User not found');
       req.user = user;
-      req.token = authToken;
+      req.token = token;
       req.userId = user.id;
       return next();
-    });
-    return;
-  }
-  res.status(status.FORBIDDEN).send();
+    } catch (e) {
+      return res
+        .status(status.INTERNAL_SERVER_ERROR)
+        .json({ message: e instanceof Error ? e.message : 'Service internal error' });
+    }
+  });
 };
 
 const authenticationRefreshTokenMiddleware = async (

@@ -101,7 +101,11 @@ router.post('/emailus', contactValidation.contactForm, emailUsController.contact
 //TODO: typo error
 router.get('/tenants', tenantValidations.index, tenantControllers.index);
 router.post('/tenants', tenantValidations.store, tenantControllers.store);
-router.get('/tenants/owner', tenantValidations.checkTenantOwnership, tenantControllers.checkTenantOwnership);
+router.get(
+  '/tenants/owner',
+  tenantValidations.checkTenantOwnership,
+  tenantControllers.checkTenantOwnership,
+);
 
 // ----------------------- login -------------------------
 router.post('/login', loginValidation.login, loginControllerV2.login);
@@ -197,6 +201,7 @@ router.post(
 );
 
 router.get('/projects', authenticationTokenMiddleware, projectsController.index);
+
 router.get(
   '/projects/:id',
   authenticationTokenMiddleware,
