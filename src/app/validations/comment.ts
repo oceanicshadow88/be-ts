@@ -1,7 +1,7 @@
 const { param, body } = require('express-validator');
 
 const store = [
-  body('ticketId').notEmpty().isString(),
+  body('ticket').notEmpty().isString(),
   body('sender').notEmpty().isString(),
   body('content').notEmpty().isString(),
 ];
