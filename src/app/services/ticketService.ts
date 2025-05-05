@@ -60,6 +60,7 @@ export const findTickets = async (
         path: 'comments',
         model: commentModel,
       })
+
       .populate({ 
         path: 'project', 
         model: projectModel
