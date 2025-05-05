@@ -262,6 +262,7 @@ userSchema.methods.generateAuthToken = async function () {
     await user.save();
     return { token, refreshToken: refreshToken };
   }
+
   const refreshToken = jwt.sign(
     { id: user._id, refreshToken: user.refreshToken },
     config.accessSecret,
