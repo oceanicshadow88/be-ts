@@ -36,7 +36,7 @@ beforeAll(async () => {
   });
   await Comment.getModel(dbConnection).create({
     _id: '62f3664589e47f4d0b7e5327',
-    ticketId: '62e4bc9692266e6c8fcd0bbe',
+    ticket: '62e4bc9692266e6c8fcd0bbe',
     sender: '62e8d28a182f4561a92f6aed',
     content: 'test update comment',
   });
@@ -63,7 +63,7 @@ afterAll(async () => {
 describe('Create Comment Test', () => {
   it('should create comment', async () => {
     const newComment = {
-      ticketId: '62e4bc9692266e6c8fcd0bbe',
+      ticket: '62e4bc9692266e6c8fcd0bbe',
       sender: '62e8d28a182f4561a92f6aed',
       content: 'new comment',
     };
@@ -74,7 +74,7 @@ describe('Create Comment Test', () => {
     expect(res.body).toMatchObject({ ...newComment });
   });
   it('should return error code 422', async () => {
-    const newComment = { ticketId: undefined, sender: undefined, content: 'New Comment' };
+    const newComment = { ticket: undefined, sender: undefined, content: 'New Comment' };
     const res = await request(application)
       .post('/api/v2/comments')
       .send({ ...newComment });

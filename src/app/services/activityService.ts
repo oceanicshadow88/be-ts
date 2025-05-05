@@ -7,14 +7,14 @@ export const getActivity = async (req: Request) => {
   const userModel = await User.getModel(req.tenantsConnection);
 
   const result = await Activity.getModel(req.dbConnection)
-    .find({ ticketId: tid })
+    .find({ ticket: tid })
     .sort({ createdAt: -1 })
-    .populate({ path: 'userId', model: userModel });
+    .populate({ path: 'user', model: userModel });
   return result;
 };
 
 export const deleteActivity = async (req: Request) => {
   const ticketId = req.params.id;
-  await Activity.getModel(req.dbConnection).updateMany({ ticketId: ticketId }, { isDeleted: true });
-  await Activity.getModel(req.dbConnection).find({ ticketId: ticketId });
+  await Activity.getModel(req.dbConnection).updateMany({ ticket: ticketId }, { isDeleted: true });
+  await Activity.getModel(req.dbConnection).find({ ticket: ticketId });
 };
