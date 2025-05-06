@@ -29,6 +29,31 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
+const createUser = async (
+  tenantsDbConnection: any,
+  emailAdd: string,
+  password: string,
+  tenant: any,
+) => {
+  const user = await User.getModel(tenantsDbConnection);
+  const resUser = await user.findOneAndUpdate(
+    { email: emailAdd.toString() },
+    {
+      $setOnInsert: {
+        active: false,
+        refreshToken: '',
+      },
+      $addToSet: { tenants: tenant._id },
+    },
+    {
+      upsert: true,
+      new: true,
+    },
+  );
+  await resUser.activeAccount();
+  await User.getModel(tenantsDbConnection).saveInfo(emailAdd, 'techscrum', password);
+  return resUser;
+};
 const init = async (domainInput: string, emailInput: string, passwordInput: string) => {
   try {
     const emailAdd = emailInput || 'techscrum@gmail.com';
@@ -49,25 +74,13 @@ const init = async (domainInput: string, emailInput: string, passwordInput: stri
       { origin: domain },
       { upsert: true, new: true },
     );
-
-    const user = await User.getModel(tenantsDbConnection);
-    const resUser = await user.findOneAndUpdate(
-      { email: emailAdd },
-      {
-        $setOnInsert: {
-          active: false,
-          refreshToken: '',
-        },
-        $addToSet: { tenants: tenant._id },
-      },
-      {
-        upsert: true,
-        new: true,
-      },
-    );
-    await resUser.activeAccount();
-    await User.getModel(tenantsDbConnection).saveInfo(emailAdd, 'techscrum', password);
-
+    if (process.env.INIT_EMAIL) {
+      const emails = process.env.INIT_EMAIL.split(',');
+      for (const email of emails) {
+        await createUser(tenantsDbConnection, email, 'techscrum', tenant);
+      }
+    }
+    const resUser = await createUser(tenantsDbConnection, emailAdd, password, tenant);
     const activeTenant = resUser.tenants.at(-1);
     await tenantModel.findByIdAndUpdate(activeTenant, {
       active: true,
