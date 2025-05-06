@@ -93,13 +93,4 @@ export default class EpicBuilder extends BaseBuilder {
   async save() {
     return super.save(Epic.getModel(db.dbConnection));
   }
-
-  static async createDefaultEpic() {
-    const EpicModel = Epic.getModel(db.dbConnection);
-    const existing = await EpicModel.findOne({ title: 'Epic Title', tenant: db.tenantId });
-    if (existing) {
-      return existing;
-    }
-    return new EpicBuilder().withTitle('Epic Title').withTenant(db.tenantId).save();
-  }
 }
