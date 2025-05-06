@@ -15,30 +15,36 @@ declare module 'express-serve-static-core' {
 }
 
 const authenticationTokenMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
+  const token = req.headers.authorization?.split(' ')[1];
 
-  const authType = authHeader?.split(' ')[0];
-  const authToken = authHeader?.split(' ')[1];
+  if (!token) {
+    return res.status(status.UNAUTHORIZED).json({ message: 'Token not provided' });
+  }
 
-  if (!authHeader || !authToken) return res.sendStatus(401);
-  if (authType === 'Bearer') {
-    jwt.verify(authToken, config.accessSecret, async (err: any) => {
-      if (err) return res.status(status.FORBIDDEN).send();
-      const verifyUser: any = jwt.verify(authToken, config.accessSecret);
-      const userDb = await User.getModel(req.tenantsConnection);
-      const user = await userDb.findOne({ _id: verifyUser.id });
-      if (!user) {
-        res.status(status.FORBIDDEN).send();
-        return;
+  jwt.verify(token, config.accessSecret, async (err, decoded) => {
+    if (err) {
+      if (err.name === 'TokenExpiredError') {
+        return res.status(status.UNAUTHORIZED).json({ message: 'Access token expired' });
       }
+      return res.status(status.UNAUTHORIZED).json({ message: 'Invalid token' });
+    }
+
+    try {
+      const userModel = await User.getModel(req.tenantsConnection);
+      if (!decoded || typeof decoded !== 'object' || !('id' in decoded))
+        return res.status(status.UNAUTHORIZED).json({ message: 'Invalid token payload' });
+      const user = await userModel.findById(decoded.id);
+      if (!user) res.status(status.FORBIDDEN).json({ message: 'User not found!' });
       req.user = user;
-      req.token = authToken;
+      req.token = token;
       req.userId = user.id;
       return next();
-    });
-    return;
-  }
-  res.status(status.FORBIDDEN).send();
+    } catch (e) {
+      return res
+        .status(status.INTERNAL_SERVER_ERROR)
+        .json({ message: e instanceof Error ? e.message : 'Service internal error' });
+    }
+  });
 };
 
 const authenticationRefreshTokenMiddleware = async (
@@ -46,50 +52,46 @@ const authenticationRefreshTokenMiddleware = async (
   res: Response,
   next: NextFunction,
 ) => {
-  if (Object.keys(req.user ?? {}).length !== 0) return next();
-  const authHeader = req.headers.authorization;
+  if (req.user) return next();
 
-  const authType = authHeader && authHeader.split(' ')[0];
-  const authRefreshToken = authHeader && authHeader.split(' ')[2];
+  const [authType, , authRefreshToken] = req.headers.authorization?.split(' ') || [];
 
-  if (!authHeader || !authRefreshToken) return res.sendStatus(401);
+  if (authType !== 'Bearer')
+    return res.status(status.UNAUTHORIZED).json({ message: 'wrong request type' });
 
-  if (authType === 'Bearer') {
-    jwt.verify(authRefreshToken, config.accessSecret, async (err: any) => {
-      if (err) return next();
-      const verifyUser: any = jwt.verify(authRefreshToken, config.accessSecret);
-      const userDb = await User.getModel(req.tenantsConnection);
-      const user = await userDb.findOne({
-        _id: verifyUser.id,
-        refreshToken: verifyUser.refreshToken,
-      });
-      req.user = user;
-      if (!user) {
-        res.status(status.FORBIDDEN).send();
-        return;
+  if (!authRefreshToken)
+    return res.status(status.UNAUTHORIZED).json({ message: 'Token not provided' });
+
+  jwt.verify(authRefreshToken, config.accessSecret, async (err, decoded) => {
+    if (err) {
+      if (err.name === 'TokenExpiredError') {
+        return res.status(status.UNAUTHORIZED).json({ message: 'Access token expired' });
       }
-      if (user._id.toString() === req.ownerId) {
-        req.isOwner = true;
-      } else {
-        req.isOwner = false;
-      }
+      return res.status(status.UNAUTHORIZED).json({ message: 'Invalid token' });
+    }
 
-      req.token = await jwt.sign({ id: user._id.toString() }, config.accessSecret, {
-        expiresIn: '48h',
+    try {
+      const userModel = await User.getModel(req.tenantsConnection);
+      if (!decoded || typeof decoded !== 'object' || !('id' in decoded))
+        return res.status(status.UNAUTHORIZED).json({ message: 'Invalid token payload' });
+      const user = await userModel.findOne({ _id: decoded.id, refreshToken: decoded.refreshToken });
+      if (!user) res.status(status.FORBIDDEN).json({ message: 'User not found!' });
+      const { token, refreshToken } = await user.generateAuthToken();
+
+      Object.assign(req, {
+        token,
+        user,
+        refreshToken,
+        userId: user.id,
+        isOwner: user.id === req.ownerId,
       });
-      req.refreshToken = jwt.sign(
-        { id: user._id, refreshToken: user.refreshToken },
-        config.accessSecret,
-        {
-          expiresIn: '360h',
-        },
-      );
-      req.userId = user.id;
       return next();
-    });
-    return;
-  }
-  res.status(status.FORBIDDEN).send();
+    } catch (error) {
+      return res
+        .status(status.INTERNAL_SERVER_ERROR)
+        .json({ message: error instanceof Error ? error.message : 'Service internal error' });
+    }
+  });
 };
 
 export { authenticationTokenMiddleware, authenticationRefreshTokenMiddleware };
