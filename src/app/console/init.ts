@@ -74,12 +74,6 @@ const init = async (domainInput: string, emailInput: string, passwordInput: stri
       { origin: domain },
       { upsert: true, new: true },
     );
-    if (process.env.INIT_EMAIL) {
-      const emails = process.env.INIT_EMAIL.split(',');
-      for (const email of emails) {
-        await createUser(tenantsDbConnection, email, 'techscrum', tenant);
-      }
-    }
     const resUser = await createUser(tenantsDbConnection, emailAdd, password, tenant);
     const activeTenant = resUser.tenants.at(-1);
     await tenantModel.findByIdAndUpdate(activeTenant, {
