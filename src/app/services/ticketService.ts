@@ -11,38 +11,39 @@ import * as Epic from '../model/epic';
 import { ActivityType, IChange, ITicket, ITicketDocument } from '../types';
 import mongoose, { Mongoose, Types } from 'mongoose';
 
-/** Find tickets with given filter
- * @param queryFilter
- * @param userFilter
- * @param typeFilter
- * @param labelFilter
+/** Find tickets with given filters
  * @param dbConnection Mongoose
+ * @param tenantConnection Mongoose
+ * @param filters Filters to find tickets, must be in the format of {key: value}
  * @returns Document result
  */
 export const findTickets = async (
-  queryFilter: object,
-  userFilter: object,
-  typeFilter: object,
-  epicFilter: object,
-  labelFilter: object,
   dbConnection: Mongoose,
   tenantConnection: Mongoose,
+  ...filters: Record<string, any>[]
 ) => {
-  const TicketModel = Ticket.getModel(dbConnection);
-
-  const UserFields = 'avatarIcon name email';
-
-  const userModel = await User.getModel(tenantConnection);
   try {
-    const tickets = await TicketModel.find(queryFilter)
-      .find(userFilter)
-      .find(typeFilter)
-      .find(epicFilter)
-      .find(labelFilter)
-      .populate({ path: 'type', model: Type.getModel(dbConnection) })
+    const ticketModel = await Ticket.getModel(dbConnection);
+
+    const typeModel = Type.getModel(dbConnection);
+
+    const labelModel = Label.getModel(dbConnection);
+
+    const UserFields = 'avatarIcon name email';
+
+    const userModel = await User.getModel(tenantConnection);
+
+    const commentModel = await Comment.getModel(dbConnection);
+
+    const projectModel = await Project.getModel(dbConnection);
+
+    const mergedFilter = Object.assign({}, ...filters);
+
+    const tickets = await ticketModel.find(mergedFilter)
+      .populate({ path: 'type', model: typeModel })
       .populate({
         path: 'labels',
-        model: Label.getModel(dbConnection),
+        model: labelModel,
         select: 'name slug',
       })
       .populate({
@@ -57,9 +58,9 @@ export const findTickets = async (
       })
       .populate({
         path: 'comments',
-        model: Comment.getModel(dbConnection),
+        model: commentModel,
       })
-      .populate({ path: 'project', model: Project.getModel(dbConnection) })
+      .populate({ path: 'project', model: projectModel })
       .sort({ createdAt: 1 });
 
     const activeTickets = tickets.filter((e: ITicket) => e.isActive === true);
@@ -98,13 +99,9 @@ export const createTicket = async (req: Request) => {
   }
 
   const result = await findTickets(
-    { _id: ticket._id },
-    {},
-    {},
-    {},
-    {},
     req.dbConnection,
     req.tenantsConnection,
+    { _id: ticket._id },
   );
   return result[0];
 };
@@ -259,13 +256,9 @@ export const updateTicket = async (req: Request) => {
   }
 
   const result = await findTickets(
-    { _id: id },
-    {},
-    {},
-    {},
-    {},
     req.dbConnection,
     req.tenantsConnection,
+    { _id: id },
   );
   return result[0];
 };
@@ -330,12 +323,8 @@ export const getTicketsByEpic = async (req: Request) => {
 
 export const getShowTicket = (req: Request) => {
   return findTickets(
-    { _id: req.params.id },
-    {},
-    {},
-    {},
-    {},
     req.dbConnection,
     req.tenantsConnection,
+    { _id: req.params.id },
   );
 };
