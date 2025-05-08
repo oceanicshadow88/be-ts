@@ -15,7 +15,10 @@ declare module 'express-serve-static-core' {
 }
 
 const authenticationTokenMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  const [authType, token] = req.headers.authorization?.split(' ') || [];
+
+  if (authType !== 'Bearer')
+    return res.status(status.UNAUTHORIZED).json({ message: 'wrong request type' });
 
   if (!token) {
     return res.status(status.UNAUTHORIZED).json({ message: 'Token not provided' });
