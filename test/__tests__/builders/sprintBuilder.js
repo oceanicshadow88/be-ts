@@ -67,13 +67,4 @@ export default class SprintBuilder extends BaseBuilder {
   async save() {
     return super.save(Sprint.getModel(db.dbConnection));
   }
-
-  static async createDefaultSprint() {
-    const SprintModel = Sprint.getModel(db.dbConnection);
-    const existing = await SprintModel.findOne({ name: 'Sprint Title', tenant: db.tenantId });
-    if (existing) {
-      return existing;
-    }
-    return new SprintBuilder().withName('Sprint Title').withTenant(db.tenantId).save();
-  }
 }
