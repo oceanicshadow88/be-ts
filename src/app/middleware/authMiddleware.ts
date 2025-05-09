@@ -15,14 +15,15 @@ declare module 'express-serve-static-core' {
 }
 
 const authenticationTokenMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const [authType, token] = req.headers.authorization?.split(' ') || [];
-
-  if (authType !== 'Bearer')
-    return res.status(status.UNAUTHORIZED).json({ message: 'wrong request type' });
-
-  if (!token) {
-    return res.status(status.UNAUTHORIZED).json({ message: 'Token not provided' });
+  const authorization = req.header('Authoriztion');
+  if (!authorization) {
+    return res.status(status.UNAUTHORIZED).json({ message: 'missing auth header' });
   }
+
+  const [authType, token] = authorization?.split(' ') || [];
+
+  if (authType !== 'Bearer' || !token)
+    return res.status(status.UNAUTHORIZED).json({ message: 'invalid token type' });
 
   jwt.verify(token, config.accessSecret, async (err, decoded) => {
     if (err) {
