@@ -17,37 +17,26 @@ declare module 'express-serve-static-core' {
 const authenticationTokenMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const authorization = req.header('Authoriztion');
   if (!authorization) {
-    return res.status(status.UNAUTHORIZED).json({ message: 'missing auth header' });
+    return res.status(status.UNAUTHORIZED).json({ error: 'missing auth header' });
   }
 
   const [authType, token] = authorization?.split(' ') || [];
 
   if (authType !== 'Bearer' || !token)
-    return res.status(status.UNAUTHORIZED).json({ message: 'invalid token type' });
+    return res.status(status.UNAUTHORIZED).json({ error: 'invalid token type' });
 
   jwt.verify(token, config.accessSecret, async (err, decoded) => {
-    if (err) {
-      if (err.name === 'TokenExpiredError') {
-        return res.status(status.UNAUTHORIZED).json({ message: 'Access token expired' });
-      }
-      return res.status(status.UNAUTHORIZED).json({ message: 'Invalid token' });
-    }
+    if (err) return res.status(status.UNAUTHORIZED).json({ error: 'Invalid token' });
 
-    try {
-      const userModel = await User.getModel(req.tenantsConnection);
-      if (!decoded || typeof decoded !== 'object' || !('id' in decoded))
-        return res.status(status.UNAUTHORIZED).json({ message: 'Invalid token payload' });
-      const user = await userModel.findById(decoded.id);
-      if (!user) res.status(status.FORBIDDEN).json({ message: 'User not found!' });
-      req.user = user;
-      req.token = token;
-      req.userId = user.id;
-      return next();
-    } catch (e) {
-      return res
-        .status(status.INTERNAL_SERVER_ERROR)
-        .json({ message: e instanceof Error ? e.message : 'Service internal error' });
-    }
+    const userModel = await User.getModel(req.tenantsConnection);
+    if (!decoded || typeof decoded !== 'object' || !('id' in decoded))
+      return res.status(status.UNAUTHORIZED).json({ error: 'Invalid token payload' });
+    const user = await userModel.findById(decoded.id);
+    if (!user) res.status(status.FORBIDDEN).json({ error: 'User not found!' });
+    req.user = user;
+    req.token = token;
+    req.userId = user.id;
+    return next();
   });
 };
 
