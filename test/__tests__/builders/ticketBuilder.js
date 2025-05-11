@@ -83,8 +83,6 @@ export default class TicketBuilder extends BaseBuilder {
     return {
       title: 'Default Ticket Title',
       project: project._id,
-      type: db.defaultTicketType._id,
-      status: db.defaultStatus._id,
       reporter: db.defaultUser._id,
       // assign: db.defaultUser._id,
       description: 'Default description',
