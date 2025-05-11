@@ -8,7 +8,7 @@ import { invite } from '../utils/emailSender';
 import { randomStringGenerator } from '../utils/randomStringGenerator';
 import jwt from 'jsonwebtoken';
 import config from '../config/app';
-import { createUser } from '../console/init';
+import { createUser } from '../console/temp';
 
 export const getProjectRole = async (req: Request) => {
   //use cache after all features moved to v2

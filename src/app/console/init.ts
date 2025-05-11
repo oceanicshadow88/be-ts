@@ -7,12 +7,12 @@ import config from '../config/app';
 import fs from 'fs';
 import path from 'path';
 import * as Tenant from '../model/tenants';
-import * as User from '../model/user';
 import * as StripeSubscription from '../model/stripeSubscription';
 import * as healthCheckService from '../services/healthCheckService';
 import { getStripe } from '../lib/stripe';
 import { getFreePlanPriceId, getFreePlanProductId } from '../services/stripeService';
 import stripeConfig from '../config/stripe';
+import { createUser } from './temp';
 const options = {
   useNewURLParser: true,
   useUnifiedTopology: true,
@@ -28,33 +28,6 @@ const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
-
-export const createUser = async (
-  tenantsDbConnection: any,
-  emailAdd: string,
-  password: string,
-  tenant: any,
-  name: string = 'techscrum',
-) => {
-  const user = await User.getModel(tenantsDbConnection);
-  const resUser = await user.findOneAndUpdate(
-    { email: emailAdd.toString() },
-    {
-      $setOnInsert: {
-        active: false,
-        refreshToken: '',
-      },
-      $addToSet: { tenants: tenant._id },
-    },
-    {
-      upsert: true,
-      new: true,
-    },
-  );
-  await resUser.activeAccount();
-  await User.getModel(tenantsDbConnection).saveInfo(emailAdd, name, password);
-  return resUser;
-};
 
 const init = async (domainInput: string, emailInput: string, passwordInput: string) => {
   try {
