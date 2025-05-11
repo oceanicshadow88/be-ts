@@ -29,11 +29,12 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
-const createUser = async (
+export const createUser = async (
   tenantsDbConnection: any,
   emailAdd: string,
   password: string,
   tenant: any,
+  name: string = 'techscrum',
 ) => {
   const user = await User.getModel(tenantsDbConnection);
   const resUser = await user.findOneAndUpdate(
@@ -51,9 +52,10 @@ const createUser = async (
     },
   );
   await resUser.activeAccount();
-  await User.getModel(tenantsDbConnection).saveInfo(emailAdd, 'techscrum', password);
+  await User.getModel(tenantsDbConnection).saveInfo(emailAdd, name, password);
   return resUser;
 };
+
 const init = async (domainInput: string, emailInput: string, passwordInput: string) => {
   try {
     const emailAdd = emailInput || 'techscrum@gmail.com';
