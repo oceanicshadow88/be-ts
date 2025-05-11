@@ -7,12 +7,12 @@ import config from '../config/app';
 import fs from 'fs';
 import path from 'path';
 import * as Tenant from '../model/tenants';
-import * as User from '../model/user';
 import * as StripeSubscription from '../model/stripeSubscription';
 import * as healthCheckService from '../services/healthCheckService';
 import { getStripe } from '../lib/stripe';
 import { getFreePlanPriceId, getFreePlanProductId } from '../services/stripeService';
 import stripeConfig from '../config/stripe';
+import { createUser } from './temp';
 const options = {
   useNewURLParser: true,
   useUnifiedTopology: true,
@@ -49,25 +49,7 @@ const init = async (domainInput: string, emailInput: string, passwordInput: stri
       { origin: domain },
       { upsert: true, new: true },
     );
-
-    const user = await User.getModel(tenantsDbConnection);
-    const resUser = await user.findOneAndUpdate(
-      { email: emailAdd },
-      {
-        $setOnInsert: {
-          active: false,
-          refreshToken: '',
-        },
-        $addToSet: { tenants: tenant._id },
-      },
-      {
-        upsert: true,
-        new: true,
-      },
-    );
-    await resUser.activeAccount();
-    await User.getModel(tenantsDbConnection).saveInfo(emailAdd, 'techscrum', password);
-
+    const resUser = await createUser(tenantsDbConnection, emailAdd, password, tenant);
     const activeTenant = resUser.tenants.at(-1);
     await tenantModel.findByIdAndUpdate(activeTenant, {
       active: true,
