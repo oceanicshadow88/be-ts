@@ -1,6 +1,12 @@
 /* eslint-disable no-console */
 const loader = require('./src/loaders');
 require('./src/app/utils/arrayUtils');
+// 导入全局错误处理初始化函数
+const { initGlobalErrorHandlers } = require('./src/app/middleware/errorHandler');
+
+// 初始化全局错误处理
+initGlobalErrorHandlers();
+
 const checkEnvironment = () => {
   if (
     process.env.ENVIRONMENT !== 'production' &&

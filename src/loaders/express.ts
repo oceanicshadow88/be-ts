@@ -1,12 +1,11 @@
-import express, { NextFunction } from 'express';
+import express from 'express';
 import rateLimit from 'express-rate-limit';
 import config from '../app/config/app';
 
 const apiRouterV2 = require('../app/routes/v2/api');
 const cors = require('cors');
 const helmet = require('helmet');
-const { errorHandler } = require('./errorHandler');
-import status from 'http-status';
+import { errorHandler, notFoundHandler } from '../app/middleware/errorHandler';
 import { globalAsyncErrorHandler } from './routes';
 const compression = require('compression');
 const limiter = rateLimit({
@@ -27,11 +26,8 @@ module.exports = () => {
   }
   app.use(helmet());
   app.use(`${config.api.prefix}/v2`, globalAsyncErrorHandler(apiRouterV2));
-  app.use((err: Error, req: express.Request, res: express.Response, next: NextFunction) => {
-    errorHandler.handleError(err, res);
-    res.status(status.INTERNAL_SERVER_ERROR).send();
-    next();
-  });
+  app.use(notFoundHandler);
+  app.use(errorHandler);
 
   return app;
 };
