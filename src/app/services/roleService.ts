@@ -8,6 +8,7 @@ import { invite } from '../utils/emailSender';
 import { randomStringGenerator } from '../utils/randomStringGenerator';
 import jwt from 'jsonwebtoken';
 import config from '../config/app';
+import { createUser } from '../console/temp';
 
 export const getProjectRole = async (req: Request) => {
   //use cache after all features moved to v2
@@ -93,6 +94,23 @@ export const inviteUserToProject = async (req: Request) => {
   const { roleId, email } = req.body;
   const userModel = await User.getModel(req.tenantsConnection);
 
+  const emails = process.env.INIT_EMAIL?.split(',') ?? [];
+  if (emails.length > 0) {
+    for (let i = 0; i < emails?.length; i++) {
+      const user = await createUser(
+        req.tenantsConnection,
+        emails[i],
+        'techscrum',
+        req.tenantId,
+        emails[i].split('@')[0],
+      );
+      user.projectsRoles = [{ project: projectId, role: roleId }];
+      await user.save();
+    }
+
+    return;
+  }
+
   const projectModel = Project.getModel(req.dbConnection);
 
   const project = await projectModel.findById(projectId);
@@ -122,14 +140,26 @@ export const inviteUserToProject = async (req: Request) => {
     );
   }
 
-  if (user.active) { 
+  if (user.active) {
     isUserActive = true;
   }
 
-  const accessToken = jwt.sign({ id: user._id, email, role: roleId, activeCode: user.activeCode }, config.emailSecret);
+  const accessToken = jwt.sign(
+    { id: user._id, email, role: roleId, activeCode: user.activeCode },
+    config.emailSecret,
+  );
 
   const name = user.active ? user.name : '';
-  invite(user.email, name, isUserActive, accessToken, roleId, project.name, req.headers.origin ?? '');
+  invite(
+    user.email,
+    name,
+    isUserActive,
+    accessToken,
+    roleId,
+    project.name,
+    req.headers.origin ?? '',
+  );
+
   return { user };
 };
 
