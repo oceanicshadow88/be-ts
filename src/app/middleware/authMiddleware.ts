@@ -20,7 +20,7 @@ const authenticationTokenMiddleware = (req: Request, res: Response, next: NextFu
     return res.status(status.UNAUTHORIZED).json({ error: 'missing auth header' });
   }
 
-  const [authType, token] = authorization?.split(' ') || [];
+  const [authType, token] = authorization.split(' ');
 
   if (authType !== 'Bearer' || !token)
     return res.status(status.UNAUTHORIZED).json({ error: 'invalid token type' });
@@ -46,44 +46,42 @@ const authenticationRefreshTokenMiddleware = async (
   next: NextFunction,
 ) => {
   if (req.user) return next();
+  const authorization = req.header('Authorization');
 
-  const [authType, , authRefreshToken] = req.headers.authorization?.split(' ') || [];
+  if (!authorization) return res.status(status.UNAUTHORIZED).json({ error: 'missing auth header' });
 
-  if (authType !== 'Bearer')
-    return res.status(status.UNAUTHORIZED).json({ message: 'wrong request type' });
+  const [authType, , authRefreshToken] = authorization.split(' ');
 
-  if (!authRefreshToken)
-    return res.status(status.UNAUTHORIZED).json({ message: 'Token not provided' });
+  if (authType !== 'Bearer' || !authRefreshToken)
+    return res.status(status.UNAUTHORIZED).json({ error: 'invalid token type' });
 
   jwt.verify(authRefreshToken, config.accessSecret, async (err, decoded) => {
-    if (err) {
-      if (err.name === 'TokenExpiredError') {
-        return res.status(status.UNAUTHORIZED).json({ message: 'Access token expired' });
-      }
-      return res.status(status.UNAUTHORIZED).json({ message: 'Invalid token' });
+    if (err) return res.status(status.UNAUTHORIZED).json({ error: 'Invalid token' });
+
+    const userModel = await User.getModel(req.tenantsConnection);
+    if (!decoded || typeof decoded !== 'object' || !('id' in decoded)) {
+      return res.status(status.UNAUTHORIZED).json({ message: 'Invalid token payload' });
     }
 
-    try {
-      const userModel = await User.getModel(req.tenantsConnection);
-      if (!decoded || typeof decoded !== 'object' || !('id' in decoded))
-        return res.status(status.UNAUTHORIZED).json({ message: 'Invalid token payload' });
-      const user = await userModel.findOne({ _id: decoded.id, refreshToken: decoded.refreshToken });
-      if (!user) res.status(status.FORBIDDEN).json({ message: 'User not found!' });
-      const { token, refreshToken } = await user.generateAuthToken();
+    const user = await userModel.findOne({ _id: decoded.id, refreshToken: authRefreshToken });
 
-      Object.assign(req, {
-        token,
-        user,
-        refreshToken,
-        userId: user.id,
-        isOwner: user.id === req.ownerId,
-      });
-      return next();
-    } catch (error) {
+    if (!user) {
       return res
-        .status(status.INTERNAL_SERVER_ERROR)
-        .json({ message: error instanceof Error ? error.message : 'Service internal error' });
+        .status(status.FORBIDDEN)
+        .json({ message: 'User not found or refreshToken outdated!' });
     }
+
+    const { token, refreshToken } = await user.generateAuthToken();
+
+    Object.assign(req, {
+      token,
+      user,
+      refreshToken,
+      userId: user.id,
+      isOwner: user.id === req.ownerId,
+    });
+
+    return next();
   });
 };
 

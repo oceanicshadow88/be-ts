@@ -246,30 +246,13 @@ userSchema.methods.toJSON = function () {
 
 userSchema.methods.generateAuthToken = async function () {
   const user = this;
-  const token = jwt.sign({ id: user._id.toString() }, config.accessSecret, {
+  const token = jwt.sign({ id: user.id }, config.accessSecret, {
     expiresIn: '48h',
   });
-  if (user.refreshToken == null || user.refreshToken === undefined || user.refreshToken === '') {
-    const randomString = randomStringGenerator(10);
-    const refreshToken = jwt.sign(
-      { id: user._id, refreshToken: randomString },
-      config.accessSecret,
-      {
-        expiresIn: '360h',
-      },
-    );
-    user.refreshToken = randomString;
-    await user.save();
-    return { token, refreshToken: refreshToken };
-  }
+  const refreshToken = jwt.sign({ id: user.id }, config.accessSecret, { expiresIn: '360h' });
+  user.refreshToken = refreshToken;
+  await user.save();
 
-  const refreshToken = jwt.sign(
-    { id: user._id, refreshToken: user.refreshToken },
-    config.accessSecret,
-    {
-      expiresIn: '360h',
-    },
-  );
   return { token, refreshToken };
 };
 
