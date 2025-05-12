@@ -23,10 +23,6 @@ const tenantSchema = new Schema<ITenant>(
       required: true,
       unique: true,
     },
-    passwordSecret: {
-      type: String,
-      // required: true,
-    },
     plan: {
       type: String,
       enum: ['Free', 'Advanced', 'Ultra', 'Enterprise'],
