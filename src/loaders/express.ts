@@ -31,6 +31,8 @@ module.exports = () => {
   app.use(`${config.api.prefix}/v2`, globalAsyncErrorHandler(apiRouterV2));
   app.use((err: Error, req: express.Request, res: express.Response, next: NextFunction) => {
     errorHandler.handleError(err, res);
+    //eslint-disable-next-line no-console
+    console.log('errorHandler');
     res.status(status.INTERNAL_SERVER_ERROR).send();
     next();
   });
