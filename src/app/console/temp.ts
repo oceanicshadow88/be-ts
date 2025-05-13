@@ -4,7 +4,7 @@ export const createUser = async (
   tenantsDbConnection: any,
   emailAdd: string,
   password: string,
-  tenant: any,
+  tenantId: string,
   name: string = 'techscrum',
 ) => {
   const user = await User.getModel(tenantsDbConnection);
@@ -15,7 +15,7 @@ export const createUser = async (
         active: false,
         refreshToken: '',
       },
-      $addToSet: { tenants: tenant._id },
+      $addToSet: { tenants: tenantId },
     },
     {
       upsert: true,
