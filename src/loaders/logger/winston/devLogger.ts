@@ -13,7 +13,7 @@ function buildDevLogger(): any {
     ),
     transports: [
       new winston.transports.File({
-        filename: path.join('storage/logs', '/logger.log'),
+        filename: path.join('storage/logs', '/logger213213.log'),
       }),
     ],
   });

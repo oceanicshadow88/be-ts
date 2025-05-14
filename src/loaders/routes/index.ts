@@ -9,8 +9,6 @@ const asyncMiddleware = (fn: any) => (req: Request, res: Response, next: NextFun
 };
 
 export const globalAsyncErrorHandler = (router: any) => {
-  //eslint-disable-next-line no-console
-  console.log('globalAsyncErrorHandler');
   router?.stack?.forEach((item: any) => {
     const { route } = item;
     route?.stack?.forEach((routeItem: any) => {
