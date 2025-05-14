@@ -57,4 +57,21 @@ describe('Project Test', () => {
       .send({ ...project, ...{ key: null } })
       .expect(422);
   });
+
+  it('should get project details', async () => {
+    const project = await new ProjectBuilder().save();
+    const res = await request(app.application).get(`/api/v2/projects/${project.id}/details`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty('labels');
+    expect(res.body).toHaveProperty('users');
+    expect(res.body).toHaveProperty('ticketTypes');
+    expect(res.body).toHaveProperty('sprints');
+    expect(res.body).toHaveProperty('statuses');
+    expect(res.body).toHaveProperty('boards');
+    expect(res.body).toHaveProperty('epics');
+    expect(res.body).toHaveProperty('details');
+    expect(res.body).toHaveProperty('retroBoards');
+  });
+
 });
