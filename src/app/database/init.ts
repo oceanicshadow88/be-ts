@@ -2,6 +2,8 @@ import * as Role from '../model/role';
 import * as Permission from '../model/permission';
 import * as Type from '../model/type';
 import * as retroBoardServices from '../services/retroBoardService';
+import { capitalizeFirstLetter } from '../utils/helper';
+import { Mongoose } from 'mongoose';
 
 export const TICKET_TYPES = [
   {
@@ -39,9 +41,38 @@ export const createTicketType = async (dbConnection: string) => {
   }
 };
 
+const createPolicies = (
+  dbConnection: Mongoose,
+  slug: string,
+  hasCreatePolicy = true,
+  hasEditPolicy = true,
+  hasDeletePolicy = true,
+) => {
+  const permission = Permission.getModel(dbConnection);
+  const name = capitalizeFirstLetter(slug.replace('-', ''));
+  const policies = [];
+  if (hasCreatePolicy) {
+    policies.push(new permission({ slug: `add:${slug}`, description: `Add ${name}` }));
+  }
+  policies.push(new permission({ slug: `view:${slug}`, description: `View ${name}` }));
+  if (hasEditPolicy) {
+    policies.push(new permission({ slug: `edit:${slug}`, description: `Edit ${name}` }));
+  }
+  if (hasDeletePolicy) {
+    policies.push(
+      new permission({
+        slug: `delete:${slug}`,
+        description: `Delete ${name}`,
+      }),
+    );
+  }
+  policies.forEach((item) => item.save());
+
+  return policies;
+};
+
 export const init = async (dbConnection: any) => {
   const roleModel = Role.getModel(dbConnection);
-  const permission = Permission.getModel(dbConnection);
 
   createTicketType(dbConnection);
 
@@ -49,102 +80,64 @@ export const init = async (dbConnection: any) => {
   if (result.length > 0) {
     return;
   }
+  const [createProjectPolicy, viewProjectPolicy, editProjectPolicy, deleteProjectPolicy] =
+    createPolicies(dbConnection, 'projects');
 
-  const createProjectPolicy = new permission({ slug: 'add:projects', description: 'Add Project' });
-  const viewProjectPolicy = new permission({ slug: 'view:projects', description: 'View Project' });
-  const editProjectPolicy = new permission({ slug: 'edit:projects', description: 'Edit Project' });
-  const deleteProjectPolicy = new permission({
-    slug: 'delete:projects',
-    description: 'Delete Project',
-  });
+  const [createBoardPolicy, viewBoardPolicy, editBoardPolicy, deleteBoardPolicy] = createPolicies(
+    dbConnection,
+    'boards',
+  );
 
-  const createBoardPolicy = new permission({ slug: 'create:boards', description: 'Create Boards' });
-  const viewBoardPolicy = new permission({ slug: 'view:boards', description: 'View Boards' });
-  const editBoardPolicy = new permission({ slug: 'edit:boards', description: 'Edit Project' });
-  const deleteBoardPolicy = new permission({
-    slug: 'delete:boards',
-    description: 'Delete Project',
-  });
+  const [addMembersPolicy, viewMembersPolicy, editMembersPolicy, deleteMembersPolicy] =
+    createPolicies(dbConnection, 'members');
 
-  const addMembersPolicy = new permission({ slug: 'add:members', description: 'Add Members' });
-  const viewMembersPolicy = new permission({ slug: 'view:members', description: 'View Members' });
-  const editMembersPolicy = new permission({ slug: 'edit:members', description: 'Edit Members' });
-  const deleteMembersPolicy = new permission({
-    slug: 'delete:members',
-    description: 'Delete Members',
-  });
+  const [addRolesPolicy, viewRolesPolicy, editRolesPolicy, deleteRolesPolicy] = createPolicies(
+    dbConnection,
+    'roles',
+  );
 
-  const addRolesPolicy = new permission({ slug: 'add:roles', description: 'Add Roles' });
-  const viewRolesPolicy = new permission({ slug: 'view:roles', description: 'View Roles' });
-  const editRolesPolicy = new permission({ slug: 'edit:roles', description: 'Edit Roles' });
-  const deleteRolesPolicy = new permission({ slug: 'delete:roles', description: 'Delete Roles' });
+  const [addShortcutsPolicy, viewShortcutsPolicy, editShortcutsPolicy, deleteShortcutsPolicy] =
+    createPolicies(dbConnection, 'shortcuts');
 
-  const addShortcutsPolicy = new permission({
-    slug: 'add:shortcuts',
-    description: 'Add Shortcuts',
-  });
-  const viewShortcutsPolicy = new permission({
-    slug: 'view:shortcuts',
-    description: 'View Shortcuts',
-  });
-  const editShortcutsPolicy = new permission({
-    slug: 'edit:shortcuts',
-    description: 'Edit Shortcuts',
-  });
-  const deleteShortcutsPolicy = new permission({
-    slug: 'delete:shortcuts',
-    description: 'Delete Shortcuts',
-  });
+  const [addCardsPolicy, viewCardsPolicy, editCardsPolicy, deleteCardsPolicy] = createPolicies(
+    dbConnection,
+    'tickets',
+  );
 
-  const addCardsPolicy = new permission({ slug: 'add:tickets', description: 'Add Tickets' });
-  const viewCardsPolicy = new permission({ slug: 'view:tickets', description: 'View Tickets' });
-  const editCardsPolicy = new permission({ slug: 'edit:tickets', description: 'Edit Tickets' });
-  const deleteCardsPolicy = new permission({
-    slug: 'delete:tickets',
-    description: 'Delete Tickets',
-  });
+  const [viewSettingsPolicy, editSettingsPolicy] = createPolicies(
+    dbConnection,
+    'settings',
+    false,
+    true,
+    false,
+  );
 
-  const viewSettingsPolicy = new permission({
-    slug: 'view:settings',
-    description: 'View Settings',
-  });
-  const editSettingsPolicy = new permission({
-    slug: 'edit:settings',
-    description: 'Edit Settings',
-  });
+  const [addEpicsPolicy, viewEpicsPolicy, editEpicsPolicy, deleteEpicsPolicy] = createPolicies(
+    dbConnection,
+    'epics',
+  );
 
-  await createProjectPolicy.save();
-  await viewProjectPolicy.save();
-  await editProjectPolicy.save();
-  await deleteProjectPolicy.save();
+  const [addStandupPolicy, viewStandupPolicy, editStandupPolicy] = createPolicies(
+    dbConnection,
+    'standup',
+    true,
+    true,
+    false,
+  );
 
-  await createBoardPolicy.save();
-  await viewBoardPolicy.save();
-  await editBoardPolicy.save();
-  await deleteBoardPolicy.save();
+  const [addRetroPolicy, viewRetroPolicy, editRetroPolicy, deleteRetroPolicy] = createPolicies(
+    dbConnection,
+    'retro',
+  );
 
-  await addMembersPolicy.save();
-  await viewMembersPolicy.save();
-  await editMembersPolicy.save();
-  await deleteMembersPolicy.save();
+  const [viewBacklogPolicy] = createPolicies(dbConnection, 'backlog', false, false, false);
 
-  await addRolesPolicy.save();
-  await viewRolesPolicy.save();
-  await editRolesPolicy.save();
-  await deleteRolesPolicy.save();
+  const [addSprintsPolicy, viewSprintsPolicy, editSprintsPolicy, deleteSprintsPolicy] =
+    createPolicies(dbConnection, 'sprints');
 
-  await addShortcutsPolicy.save();
-  await viewShortcutsPolicy.save();
-  await editShortcutsPolicy.save();
-  await deleteShortcutsPolicy.save();
+  const [addCommentsPolicy, viewCommentsPolicy, editCommentsPolicy, deleteCommentsPolicy] =
+    createPolicies(dbConnection, 'comments');
 
-  await addCardsPolicy.save();
-  await viewCardsPolicy.save();
-  await editCardsPolicy.save();
-  await deleteCardsPolicy.save();
-
-  await viewSettingsPolicy.save();
-  await editSettingsPolicy.save();
   ////////////////////////////////
   const adminPermissions = [
     viewProjectPolicy._id,
@@ -166,8 +159,33 @@ export const init = async (dbConnection: any) => {
     viewCardsPolicy._id,
     editCardsPolicy._id,
     deleteCardsPolicy._id,
+    addCardsPolicy._id,
     viewSettingsPolicy._id,
     editSettingsPolicy._id,
+    addShortcutsPolicy._id,
+    addRolesPolicy._id,
+    addMembersPolicy._id,
+    createProjectPolicy._id,
+    addEpicsPolicy._id,
+    viewEpicsPolicy._id,
+    editEpicsPolicy._id,
+    deleteEpicsPolicy._id,
+    addStandupPolicy._id,
+    viewStandupPolicy._id,
+    editStandupPolicy._id,
+    addRetroPolicy._id,
+    viewRetroPolicy._id,
+    editRetroPolicy._id,
+    deleteRetroPolicy._id,
+    viewBacklogPolicy._id,
+    addSprintsPolicy._id,
+    viewSprintsPolicy._id,
+    editSprintsPolicy._id,
+    deleteSprintsPolicy._id,
+    addCommentsPolicy._id,
+    viewCommentsPolicy._id,
+    editCommentsPolicy._id,
+    deleteCommentsPolicy._id,
   ];
 
   const devPermissions = [
@@ -182,6 +200,22 @@ export const init = async (dbConnection: any) => {
     deleteShortcutsPolicy._id,
     viewCardsPolicy._id,
     editCardsPolicy._id,
+    addCardsPolicy._id,
+    addEpicsPolicy._id,
+    viewEpicsPolicy._id,
+    editEpicsPolicy._id,
+    addStandupPolicy._id,
+    viewStandupPolicy._id,
+    editStandupPolicy._id,
+    addRetroPolicy._id,
+    viewRetroPolicy._id,
+    editRetroPolicy._id,
+    deleteRetroPolicy._id,
+    viewSprintsPolicy._id,
+    addCommentsPolicy._id,
+    viewCommentsPolicy._id,
+    editCommentsPolicy._id,
+    deleteCommentsPolicy._id,
   ];
 
   const productManagerPermissions = [
@@ -198,17 +232,49 @@ export const init = async (dbConnection: any) => {
     viewRolesPolicy._id,
     editRolesPolicy._id,
     deleteRolesPolicy._id,
+    addShortcutsPolicy._id,
     viewShortcutsPolicy._id,
     editShortcutsPolicy._id,
     deleteShortcutsPolicy._id,
+    addCardsPolicy._id,
     viewCardsPolicy._id,
     editCardsPolicy._id,
     deleteCardsPolicy._id,
     viewSettingsPolicy._id,
     editSettingsPolicy._id,
+    addEpicsPolicy._id,
+    viewEpicsPolicy._id,
+    editEpicsPolicy._id,
+    deleteEpicsPolicy._id,
+    addStandupPolicy._id,
+    viewStandupPolicy._id,
+    editStandupPolicy._id,
+    addRetroPolicy._id,
+    viewRetroPolicy._id,
+    editRetroPolicy._id,
+    deleteRetroPolicy._id,
+    viewBacklogPolicy._id,
+    addSprintsPolicy._id,
+    viewSprintsPolicy._id,
+    editSprintsPolicy._id,
+    deleteSprintsPolicy._id,
+    addCommentsPolicy._id,
+    viewCommentsPolicy._id,
+    editCommentsPolicy._id,
+    deleteCommentsPolicy._id,
   ];
 
-  const guestPermissions = [viewProjectPolicy._id, viewBoardPolicy._id, viewShortcutsPolicy._id];
+  const guestPermissions = [
+    viewProjectPolicy._id,
+    viewBoardPolicy._id,
+    viewShortcutsPolicy._id,
+    viewCardsPolicy._id,
+    viewEpicsPolicy._id,
+    viewRetroPolicy._id,
+    viewBacklogPolicy._id,
+    viewSprintsPolicy._id,
+    viewCommentsPolicy._id,
+  ];
 
   const adminRole = new roleModel({
     name: 'Admin',
