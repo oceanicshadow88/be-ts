@@ -48,5 +48,5 @@ const createLogger = (filename?: string) => {
   return logger;
 };
 
-const logger = createLogger();
-export { createLogger, logger };
+const loggerV2 = createLogger();
+export { createLogger, loggerV2 };

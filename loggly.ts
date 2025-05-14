@@ -11,14 +11,12 @@ const parentDirectory = path.resolve(appRoot, '..');
 const LOGGLY_ENDPOINT = process.env.LOGGLY_ENDPOINT;
 const LOG_DIR = path.join(parentDirectory, 'storage', 'logs');
 
-// Get all log files
 const getLogFiles = () => {
   return fs.readdirSync(LOG_DIR)
     .filter(file => file.startsWith('logger-') && file.endsWith('.log'))
     .map(file => path.join(LOG_DIR, file));
 };
 
-// Process a single log file (no try-catch, reject on failure)
 const processLogFile = async (logFile: string) => {
   const logData = await fs.promises.readFile(logFile, 'utf8');
   if (!logData) {
@@ -40,7 +38,6 @@ const processLogFile = async (logFile: string) => {
   return { file: logFile, status: 'success' };
 };
 
-// Read and send log files
 const sendLogsToLoggly = async () => {
   const logFiles = getLogFiles();
 
@@ -49,10 +46,8 @@ const sendLogsToLoggly = async () => {
     return;
   }
 
-  // No try-catch, let errors propagate
   const results = await Promise.all(logFiles.map(processLogFile));
 
-  // All files succeeded or are empty, delete files
   for (const file of logFiles) {
     await fs.promises.unlink(file);
     console.log(`Deleted log file ${file}`);
@@ -61,7 +56,6 @@ const sendLogsToLoggly = async () => {
   console.log('All log files processed successfully, results:', results);
 };
 
-// Execute sending
 sendLogsToLoggly().catch(err => {
   console.error('Failed to send logs to Loggly:', err.message);
   process.exit(1);
