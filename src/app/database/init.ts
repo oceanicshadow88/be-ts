@@ -211,7 +211,6 @@ export const init = async (dbConnection: any) => {
     viewRetroPolicy._id,
     editRetroPolicy._id,
     deleteRetroPolicy._id,
-    viewBacklogPolicy._id,
     viewSprintsPolicy._id,
     addCommentsPolicy._id,
     viewCommentsPolicy._id,
