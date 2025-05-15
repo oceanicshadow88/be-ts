@@ -2,6 +2,7 @@ import * as Ticket from '../../../src/app/model/ticket';
 import db from '../../setup/db';
 import BaseBuilder from './baseBuilder';
 import ProjectBuilder from './projectBuilder';
+import TypeBuilder from './typeBuilder';
 
 export default class TicketBuilder extends BaseBuilder {
   constructor(defaultValues = true) {
@@ -80,12 +81,14 @@ export default class TicketBuilder extends BaseBuilder {
 
   async buildDefault() {
     const project = await new ProjectBuilder().save();
+    const type = await TypeBuilder.createDefaultTypes();
     return {
       title: 'Default Ticket Title',
       project: project._id,
       reporter: db.defaultUser._id,
       // assign: db.defaultUser._id,
       description: 'Default description',
+      type: type[0]._id,
     };
   }
 
