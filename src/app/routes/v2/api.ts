@@ -201,6 +201,7 @@ router.post(
 );
 
 router.get('/projects', authenticationTokenMiddleware, projectsController.index);
+
 router.get(
   '/projects/:id',
   authenticationTokenMiddleware,
