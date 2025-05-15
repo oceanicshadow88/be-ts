@@ -17,22 +17,22 @@ declare module 'express-serve-static-core' {
 const authenticationTokenMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const authorization = req.header('Authoriztion');
   if (!authorization) {
-    return res.status(status.UNAUTHORIZED).json({ error: 'missing auth header' });
+    return res.sendStatus(status.UNAUTHORIZED);
   }
 
   const [authType, token] = authorization.split(' ');
 
-  if (authType !== 'Bearer' || !token)
-    return res.status(status.UNAUTHORIZED).json({ error: 'invalid token type' });
+  if (authType !== 'Bearer' || !token) return res.sendStatus(status.UNAUTHORIZED);
 
   jwt.verify(token, config.accessSecret, async (err, decoded) => {
-    if (err) return res.status(status.UNAUTHORIZED).json({ error: 'Invalid token' });
+    if (err) return res.sendStatus(status.FORBIDDEN);
 
     const userModel = await User.getModel(req.tenantsConnection);
     if (!decoded || typeof decoded !== 'object' || !('id' in decoded))
-      return res.status(status.UNAUTHORIZED).json({ error: 'Invalid token payload' });
+      return res.sendStatus(status.UNAUTHORIZED);
     const user = await userModel.findById(decoded.id);
-    if (!user) res.status(status.FORBIDDEN).json({ error: 'User not found!' });
+    if (!user) return res.sendStatus(status.UNAUTHORIZED);
+
     req.user = user;
     req.token = token;
     req.userId = user.id;
@@ -48,27 +48,24 @@ const authenticationRefreshTokenMiddleware = async (
   if (req.user) return next();
   const authorization = req.header('Authorization');
 
-  if (!authorization) return res.status(status.UNAUTHORIZED).json({ error: 'missing auth header' });
+  if (!authorization) return res.sendStatus(status.UNAUTHORIZED);
 
   const [authType, , authRefreshToken] = authorization.split(' ');
 
-  if (authType !== 'Bearer' || !authRefreshToken)
-    return res.status(status.UNAUTHORIZED).json({ error: 'invalid token type' });
+  if (authType !== 'Bearer' || !authRefreshToken) return res.sendStatus(status.UNAUTHORIZED);
 
   jwt.verify(authRefreshToken, config.accessSecret, async (err, decoded) => {
-    if (err) return res.status(status.UNAUTHORIZED).json({ error: 'Invalid token' });
+    if (err) return res.sendStatus(status.FORBIDDEN);
 
     const userModel = await User.getModel(req.tenantsConnection);
     if (!decoded || typeof decoded !== 'object' || !('id' in decoded)) {
-      return res.status(status.UNAUTHORIZED).json({ message: 'Invalid token payload' });
+      return res.sendStatus(status.UNAUTHORIZED);
     }
 
     const user = await userModel.findOne({ _id: decoded.id, refreshToken: authRefreshToken });
 
     if (!user) {
-      return res
-        .status(status.FORBIDDEN)
-        .json({ message: 'User not found or refreshToken outdated!' });
+      return res.sendStatus(status.UNAUTHORIZED);
     }
 
     const { token, refreshToken } = await user.generateAuthToken();

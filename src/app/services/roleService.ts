@@ -114,7 +114,6 @@ export const inviteUserToProject = async (req: Request) => {
       user._id,
       {
         $push: {
-          tenants: req.tenantId,
           projectsRoles: [{ project: projectId, role: roleId }],
         },
       },
@@ -122,14 +121,25 @@ export const inviteUserToProject = async (req: Request) => {
     );
   }
 
-  if (user.active) { 
+  if (user.active) {
     isUserActive = true;
   }
 
-  const accessToken = jwt.sign({ id: user._id, email, role: roleId, activeCode: user.activeCode }, config.emailSecret);
+  const accessToken = jwt.sign(
+    { id: user._id, email, role: roleId, activeCode: user.activeCode },
+    config.emailSecret,
+  );
 
   const name = user.active ? user.name : '';
-  invite(user.email, name, isUserActive, accessToken, roleId, project.name, req.headers.origin ?? '');
+  invite(
+    user.email,
+    name,
+    isUserActive,
+    accessToken,
+    roleId,
+    project.name,
+    req.headers.origin ?? '',
+  );
   return { user };
 };
 
