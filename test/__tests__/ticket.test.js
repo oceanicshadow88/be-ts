@@ -12,8 +12,8 @@ describe('Get Ticket Test', () => {
     const ticket = await new TicketBuilder().save();
 
     const res = await request(app.application)
-    .get(`/api/v2/tickets/${ticket._id}`)
-    .expect(httpStatus.OK);
+      .get(`/api/v2/tickets/${ticket._id}`)
+      .expect(httpStatus.OK);
 
     expect(res.body.id).toEqual(ticket._id.toString());
   });
@@ -22,7 +22,7 @@ describe('Get Ticket Test', () => {
 describe('Post Ticket Test', () => {
   it('should create a new ticket if valid info provided', async () => {
     const newTicket = await new TicketBuilder().buildDefault();
-    
+
     const res = await request(app.application)
       .post('/api/v2/tickets')
       .send(newTicket)
@@ -63,7 +63,6 @@ describe('Update Ticket Test', () => {
     const updatedField = {
       title: 'updated ticket',
       description: 'updated ticket',
-      
     };
 
     const res = await request(app.application)
@@ -92,7 +91,7 @@ describe('Delete ticket test', () => {
     await request(app.application)
       .delete(`/api/v2/tickets/${ticket._id}`)
       .expect(httpStatus.NO_CONTENT);
-  
+
     const checkDeleteTicket = await Ticket.getModel(db.dbConnection).findById(ticket._id);
     expect(checkDeleteTicket).toBeFalsy();
   });
