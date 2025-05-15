@@ -31,6 +31,7 @@
   "license": "ISC",
   "homepage": "https://bitbucket.org/010001/be.techscrum#readme",
   "dependencies": {
+    "@fast-csv/format": "^5.0.2",
     "@tiptap/core": "^2.11.7",
     "@tiptap/starter-kit": "^2.11.7",
     "agenda": "^4.3.0",
@@ -69,8 +70,8 @@
     "@types/whois-json": "^2.0.4",
     "@typescript-eslint/eslint-plugin": "^5.13.0",
     "@typescript-eslint/parser": "^5.0.0",
-    "babel-jest": "^29.6.4",
     "artillery": "^2.0.0-23",
+    "babel-jest": "^29.6.4",
     "concurrently": "^7.1.0",
     "eslint": "^8.15.0",
     "eslint-config-airbnb-base": "^15.0.0",
