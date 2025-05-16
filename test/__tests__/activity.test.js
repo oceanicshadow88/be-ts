@@ -4,6 +4,8 @@ import app from '../setup/app';
 import db from '../setup/db';
 import StatusBuilder from './builders/statusBuilder';
 import TypeBuilder from './builders/typeBuilder';
+import EpicBuilder from './builders/epicBuilder';
+import SprintBuilder from './builders/sprintBuilder';
 import LabelBuilder from './builders/labelBuilder';
 
 const getActivity = async (ticketId) => {
@@ -11,7 +13,18 @@ const getActivity = async (ticketId) => {
   return res.body;
 };
 
+let defaultTypes;
+let defaultStatuses;
+
 describe('Ticket Activity Tests', () => {
+  beforeAll(async () => {
+    defaultTypes = await TypeBuilder.createDefaultTypes();
+    defaultStatuses = await StatusBuilder.createDefaultStatuses();
+    await new LabelBuilder().save();
+    await new EpicBuilder().save();
+    await new SprintBuilder().save();
+  });
+
   it('should create activity for title change', async () => {
     const ticket = await new TicketBuilder().save();
     const updatedTitle = 'New Title';
@@ -73,7 +86,7 @@ describe('Ticket Activity Tests', () => {
       .withName('New Status')
       .withSlug('new-status')
       .save();
-    const ticket = await new TicketBuilder().save();
+    const ticket = await new TicketBuilder().withStatus(defaultStatuses[0]._id).save();
 
     await request(app.application)
       .put(`/api/v2/tickets/${ticket._id}`)
@@ -87,7 +100,7 @@ describe('Ticket Activity Tests', () => {
 
   it('should create activity for type change', async () => {
     const newType = await new TypeBuilder().withName('NewType').withSlug('new-type').save();
-    const ticket = await new TicketBuilder().save();
+    const ticket = await new TicketBuilder().withType(defaultTypes[0]._id).save();
 
     await request(app.application)
       .put(`/api/v2/tickets/${ticket._id}`)

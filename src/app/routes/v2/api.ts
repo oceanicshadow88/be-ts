@@ -62,6 +62,7 @@ import * as retroItemController from '../../controllers/v1/retroItemController';
 import * as epicController from '../../controllers/v1/epicController';
 import * as epicValidator from '../../validations/epicValidation';
 import * as importController from '../../controllers/v1/importController';
+import * as exportController from '../../controllers/v1/exportController';
 import { config } from '../../config/app';
 
 // ----------------------- register -------------------------
@@ -101,7 +102,11 @@ router.post('/emailus', contactValidation.contactForm, emailUsController.contact
 //TODO: typo error
 router.get('/tenants', tenantValidations.index, tenantControllers.index);
 router.post('/tenants', tenantValidations.store, tenantControllers.store);
-router.get('/tenants/owner', tenantValidations.checkTenantOwnership, tenantControllers.checkTenantOwnership);
+router.get(
+  '/tenants/owner',
+  tenantValidations.checkTenantOwnership,
+  tenantControllers.checkTenantOwnership,
+);
 
 // ----------------------- login -------------------------
 router.post('/login', loginValidation.login, loginControllerV2.login);
@@ -383,6 +388,7 @@ router.delete(
 );
 
 // csv
+//import
 router.post(
   '/import-project',
   multerMiddleware.memoryUpload.single('file'),
@@ -392,6 +398,15 @@ router.post(
   '/import-project/large',
   multerMiddleware.diskUpload.single('file'),
   importController.importProjectByCsv,
+);
+//export
+router.get(
+  '/export-project/fields',
+  exportController.exportTicketFields,
+);
+router.get(
+  '/export-project/:projectId/tickets',
+  exportController.exportTicketsCsv,
 );
 // dashboard
 router.get('/projects/:projectId/dashboards', dashboardValidations.show, dashboardController.show);

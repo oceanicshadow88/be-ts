@@ -41,15 +41,4 @@ export default class LabelBuilder extends BaseBuilder {
   async save() {
     return super.save(Label.getModel(db.dbConnection));
   }
-
-  static async createDefaultLabels() {
-    const LabelModel = Label.getModel(db.dbConnection);
-
-    const existing = await LabelModel.findOne({ slug: 'default-label', tenant: db.tenantId });
-    if (existing) {
-      return existing;
-    }
-
-    return new LabelBuilder().withName('Default Label').withSlug('default-label').save();
-  }
 }

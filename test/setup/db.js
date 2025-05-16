@@ -1,9 +1,4 @@
 import UserBuilder from '../__tests__/builders/userBuilder';
-import TypeBuilder from '../__tests__/builders/typeBuilder';
-import StatusBuilder from '../__tests__/builders/statusBuilder';
-import LabelBuilder from '../__tests__/builders/labelBuilder';
-import EpicBuilder from '../__tests__/builders/epicBuilder';
-import SprintBuilder from '../__tests__/builders/sprintBuilder';
 import dbHandler from './dbHandler';
 
 let dbConnection = null;
@@ -11,11 +6,6 @@ let tenantsConnection = null;
 let isInitialized = false;
 let tenantId = '62e333606fb0da0a12dcfe78';
 let defaultUser = null;
-let defaultTicketType = null;
-let defaultStatus = null;
-let defaultLabel = null;
-let defaultEpic = null;
-let defaultSprint = null;
 
 async function connect() {
   if (!isInitialized) {
@@ -36,17 +26,6 @@ async function connect() {
 async function createDefaultData() {
   const user = await new UserBuilder().save();
   defaultUser = user;
-  const types = await TypeBuilder.createDefaultTypes();
-  const statuses = await StatusBuilder.createDefaultStatuses();
-  const label = await LabelBuilder.createDefaultLabels();
-  const epic = await EpicBuilder.createDefaultEpic();
-  const sprint = await SprintBuilder.createDefaultSprint();
-
-  defaultTicketType = types[0];
-  defaultStatus = statuses[0];
-  defaultLabel = label;
-  defaultEpic = epic;
-  defaultSprint = sprint;
 }
 
 async function clearDatabase() {
@@ -64,21 +43,6 @@ export default {
   },
   get defaultUser() {
     return defaultUser;
-  },
-  get defaultTicketType() {
-    return defaultTicketType;
-  },
-  get defaultStatus() {
-    return defaultStatus;
-  },
-  get defaultLabel() {
-    return defaultLabel;
-  },
-  get defaultEpic() {
-    return defaultEpic;
-  },
-  get defaultSprint() {
-    return defaultSprint;
   },
   tenantId,
 };

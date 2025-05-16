@@ -8,15 +8,15 @@ export const getComment = async (req: Request) => {
   const userModel = await User.getModel(req.tenantsConnection);
   const result = await comment
     .getModel(req.dbConnection)
-    .find({ ticketId: req.params.id })
+    .find({ ticket: req.params.id })
     .populate({ path: 'sender', model: userModel });
   return replaceId(result);
 };
 
 export const createComment = async (req: Request) => {
-  const { ticketId, sender, content } = req.body;
+  const { ticket, sender, content } = req.body;
   const newComment = await comment.getModel(req.dbConnection).create({
-    ticketId,
+    ticket,
     sender,
     content,
   });

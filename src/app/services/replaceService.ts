@@ -8,6 +8,9 @@ const replaceAll = (source: string, targetString: string, shiftString: string) =
 };
 
 export const replaceId = (input: any) => {
+  if (!input) {
+    return;
+  }
   if (Array.isArray(input)) {
     if (input.length === 0) {
       return [];

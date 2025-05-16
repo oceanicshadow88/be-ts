@@ -20,7 +20,9 @@ module.exports = () => {
   const app = express();
 
   app.use(compression());
-  app.use(cors());
+  app.use(cors({
+    exposedHeaders: ['Content-Disposition'], 
+  }));
   app.use(express.json());
   if (process.env.LIMITER?.toString() === true.toString()) {
     app.use(limiter);

@@ -93,8 +93,8 @@ export const createTicket = async (req: Request) => {
   });
 
   const newAcitivity = await Activity.getModel(req.dbConnection).create({
-    userId: req.userId,
-    ticketId: ticket._id,
+    user: req.userId,
+    ticket: ticket._id,
     operation: ActivityType.CREATE,
   });
 
@@ -247,8 +247,8 @@ export const updateTicket = async (req: Request) => {
 
   const newActivities = await Activity.getModel(req.dbConnection).insertMany(
     changes.map((change) => ({
-      userId: req.userId,
-      ticketId: id,
+      user: req.userId,
+      ticket: id,
       operation: ActivityType.UPDATE,
       field: change.field,
       prevValues: change.prevValues,
