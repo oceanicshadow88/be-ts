@@ -2,7 +2,7 @@ import { Request } from 'express';
 import * as comment from '../model/comment';
 import * as User from '../model/user';
 import { replaceId } from '../services/replaceService';
-import NotFoundError from '../error/notFound';
+import { NotFoundError } from '../error/notFound.error';
 
 export const getComment = async (req: Request) => {
   const userModel = await User.getModel(req.tenantsConnection);

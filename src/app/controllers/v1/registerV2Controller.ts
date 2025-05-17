@@ -1,14 +1,16 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { asyncHandler } from '../../utils/helper';
 import mongoose from 'mongoose';
-import status from 'http-status';
 import * as Tenant from '../../model/tenants';
 import * as User from '../../model/user';
 import { emailRegister } from '../../services/registerServiceV2';
 import { logger } from '../../../loaders/logger';
 import { tenantsDBConnection } from '../../database/connections';
 import config from '../../config/app';
+import { ValidationError } from '../../error/validation.error';
+import { BadRequestError } from '../../error/badRequest.error';
+import { ConflictError } from '../../error/conflict.error';
 
 export const invalidSubdomains: { [key: string]: boolean } = {
   localhost: true,
@@ -42,27 +44,32 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   // check Validation
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    res.send(status.UNPROCESSABLE_ENTITY).json({});
-  }
-  const { email, company } = req.body;
-  if (!canRegisterCompany(company)) {
-    res.send(status.BAD_REQUEST).json({
-      errorMessage:
-        'Invalid company name. ' + Object.keys(invalidSubdomains).join(' ') + ' are not allowed.',
+    throw new ValidationError('Registration validation failed', {
+      errors: errors.array(),
     });
   }
-  let tenantModel;
-  let newTenants;
+
+  const { email, company } = req.body;
+  if (!canRegisterCompany(company)) {
+    throw new BadRequestError(
+      'Invalid company name. ' + Object.keys(invalidSubdomains).join(' ') + ' are not allowed.',
+    );
+  }
+
   let tenantsUrl = `${config.protocol}${company}.${config.mainDomain}`;
   const tenantsDbConnection = await tenantsDBConnection();
 
-  try {
-    // create new Tenant
-    tenantModel = await Tenant.getModel(tenantsDbConnection);
-    newTenants = await tenantModel.create({ origin: tenantsUrl });
-  } catch (err) {
-    return res.status(400).json({ status: 'fail', err });
+  // create new Tenant
+  const tenantModel = await Tenant.getModel(tenantsDbConnection);
+
+  // Check if tenant with this origin already exists
+  const existingTenant = await tenantModel.findOne({ origin: tenantsUrl });
+  if (existingTenant) {
+    throw new ConflictError('Company name already registered', { company });
   }
+
+  // Create new tenant
+  const newTenants = await tenantModel.create({ origin: tenantsUrl });
 
   try {
     // update User and send email
@@ -75,14 +82,12 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 
     newTenants.owner = new mongoose.Types.ObjectId(newUser.id);
     await newTenants.save();
-    return res
-      .status(200)
-      .json({ status: 'success', data: { newTenants, newUser, validationToken } });
+
+    res.json({ status: 'success', data: { newTenants, newUser, validationToken } });
   } catch (err: any) {
-    // delete tenant if error
     logger.error('registerV2Controller Fail:' + err);
     await tenantModel.findOneAndDelete({ origin: tenantsUrl });
-    res.status(status.INTERNAL_SERVER_ERROR).json({ status: 'fail', err: err?.message });
+    throw err; 
   }
 });
 
@@ -90,41 +95,30 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 export const store = asyncHandler(async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(status.UNPROCESSABLE_ENTITY).json({});
-  }
-
-  try {
-    const { email, name, password } = req.body;
-    const user = await User.getModel(req.tenantsConnection).saveInfo(email, name, password);
-    user.activeAccount();
-    const activeTenant = user.tenants.at(-1);
-    const tenantModel = await Tenant.getModel(req.tenantsConnection);
-    await tenantModel.findByIdAndUpdate(activeTenant, { active: true });
-    res.send({ user });
-  } catch (err) {
-    res.status(status.INTERNAL_SERVER_ERROR).json({
-      status: 'fail',
-      error: 'register err:' + JSON.stringify(err),
+    throw new ValidationError('Invalid account information', {
+      errors: errors.array(),
     });
   }
+
+  const { email, name, password } = req.body;
+  const user = await User.getModel(req.tenantsConnection).saveInfo(email, name, password);
+  user.activeAccount();
+  const activeTenant = user.tenants.at(-1);
+  const tenantModel = await Tenant.getModel(req.tenantsConnection);
+  await tenantModel.findByIdAndUpdate(activeTenant, { active: true });
+  res.send({ user });
 });
 
 //Verify Email by token
-export const verify = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const verify = asyncHandler(async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(status.UNPROCESSABLE_ENTITY).json({});
+    throw new ValidationError('Invalid verification request', {
+      errors: errors.array(),
+    });
   }
 
-  try {
-    const email = req.verifyEmail ?? '';
-    const user = await User.getModel(req.tenantsConnection).findOne({ email });
-    res.send({ email, active: user.active });
-  } catch (err) {
-    res.status(status.INTERNAL_SERVER_ERROR).json({
-      status: 'fail',
-      error: 'register err:' + JSON.stringify(err),
-    });
-    next(err);
-  }
+  const email = req.verifyEmail ?? '';
+  const user = await User.getModel(req.tenantsConnection).findOne({ email });
+  res.send({ email, active: user.active });
 });

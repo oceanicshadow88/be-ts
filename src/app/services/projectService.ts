@@ -72,6 +72,7 @@ export const initProject = async (
   const RetroBoardModel = await RetroBoard.getModel(dbConnection);
   const defaultRetroBoard = await RetroBoardModel.findOne({ isPublic: true, title: 'Default' });
 
+  //use cache after all features move to v2
   const RoleModel = await Role.getModel(dbConnection);
   let initRoles = await RoleModel.find({});
   if (!initRoles || initRoles.length === 0) {
@@ -84,7 +85,7 @@ export const initProject = async (
       roles: initRoles,
       owner: ownerId,
       tenant: tenantId,
-      defaultRetroBoard: defaultRetroBoard?.id,
+      defaultRetroBoard: defaultRetroBoard?._id,
     });
     const statuses = await findOrCreateStatus(dbConnection, tenantId);
     findOrCreteBoard(
