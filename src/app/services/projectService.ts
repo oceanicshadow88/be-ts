@@ -119,7 +119,7 @@ export const projectDetails = async (req: Request) => {
     throw new Error('Cannot find project');
   }
   const projectModel = Project.getModel(req.dbConnection);
-  const [labels, users, ticketTypes, sprints, statues, boards, epics, details, retroBoards] =
+  const [labels, users, ticketTypes, sprints, statuses, boards, epics, details, retroBoards] =
     await Promise.all([
       getLabel(req),
       getUserProjectRole(req),
@@ -136,7 +136,7 @@ export const projectDetails = async (req: Request) => {
     users,
     ticketTypes,
     sprints,
-    statues,
+    statuses,
     boards,
     epics,
     details,
