@@ -51,6 +51,7 @@ const projectSchema = new mongoose.Schema(
       ref: 'retroBoards',
       type: Types.ObjectId,
     },
+    ticketCounter: { type: Number, default: 0, unique: true },
   },
   { timestamps: true },
 );

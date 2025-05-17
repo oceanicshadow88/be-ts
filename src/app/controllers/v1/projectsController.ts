@@ -111,6 +111,7 @@ const tempImport = asyncHandler(async (req: Request, res: Response) => {
               project: req.params.projectId,
               reporter: null,
               type: types.find((resData: any) => resData.slug === 'techDebt')?.id,
+              temp: req.dbName,
             },
           },
           upsert: true, // This will insert if no document matches the filter
