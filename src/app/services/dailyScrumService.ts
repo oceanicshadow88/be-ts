@@ -6,7 +6,7 @@ import * as Project from '../model/project';
 import { Request } from 'express';
 import * as Ticket from '../model/ticket';
 import { replaceId } from './replaceService';
-import NotFoundError from '../error/notFound';
+import { NotFoundError } from '../error/notFound.error';
 import { GPT_MODEL, USER_ROLE } from '../config/openAi';
 import { getDashboardCounts } from './dashboardService';
 import { openai } from './openAiService';

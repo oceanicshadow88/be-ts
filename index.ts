@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 const loader = require('./src/loaders');
 require('./src/app/utils/arrayUtils');
+
 const checkEnvironment = () => {
   if (
     process.env.ENVIRONMENT !== 'production' &&
