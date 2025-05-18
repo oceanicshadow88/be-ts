@@ -69,7 +69,7 @@ const authenticationRefreshTokenMiddleware = async (
     const user = await userModel.findOne({ _id: decoded.id, refreshToken: authRefreshToken });
 
     if (!user) {
-      return res.sendStatus(status.UNAUTHORIZED);
+      return res.sendStatus(status.FORBIDDEN);
     }
 
     const { token, refreshToken } = await user.generateAuthToken();
