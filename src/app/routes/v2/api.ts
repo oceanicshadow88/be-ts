@@ -197,7 +197,7 @@ router.patch(
 
 router.post(
   '/auto-fetch-userInfo',
-  authenticationRefreshTokenMiddleware,
+  authenticationTokenMiddleware,
   loginControllerV2.autoFetchUserInfo,
 );
 
