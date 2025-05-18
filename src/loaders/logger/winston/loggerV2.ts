@@ -21,7 +21,7 @@ const createLogger = (filename?: string) => {
 
   const transports: winston.transport[] = [dailyRotateFileTransport];
 
-  if (process.env.NODE_ENV === 'development' || 'local') {
+  if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'local') {
     transports.push(new winston.transports.Console());
   }
 
