@@ -1,7 +1,6 @@
 import request from 'supertest';
 import ProjectBuilder from './builders/projectBuilder';
 import app from '../setup/app';
-import { timeStamp } from 'console';
 
 describe('Project Test', () => {
   it('get projects, should get projects', async () => {
