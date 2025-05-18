@@ -90,15 +90,16 @@ export const createTicket = async (req: Request) => {
     reporter: req.userId,
     sprint: sprintRes?._id,
     epic: epicRes?._id,
+    temp: req.dbName,
   });
 
-  const newAcitivity = await Activity.getModel(req.dbConnection).create({
+  const newActivity = await Activity.getModel(req.dbConnection).create({
     user: req.userId,
     ticket: ticket._id,
     operation: ActivityType.CREATE,
   });
 
-  if (!newAcitivity) {
+  if (!newActivity) {
     throw new Error('Create Activity failed');
   }
 
