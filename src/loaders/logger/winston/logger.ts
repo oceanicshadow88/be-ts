@@ -10,7 +10,7 @@ if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir, { recursive: true });
 }
 
-const createLogger = (filename?: string) => {
+const createLogger = (logSourceFilePath?: string) => {
 
   const dailyRotateFileTransport = new (winston.transports as any).DailyRotateFile({
     filename: path.join(logDir, 'logger-%DATE%.log'),
@@ -28,7 +28,7 @@ const createLogger = (filename?: string) => {
   const logger = winston.createLogger({
     level: 'info',
     defaultMeta: {
-      file: filename ? path.basename(filename) : undefined,
+      file: logSourceFilePath ? path.basename(logSourceFilePath) : undefined,
     },
     format: winston.format.combine(
       winston.format.timestamp(),
@@ -48,5 +48,5 @@ const createLogger = (filename?: string) => {
   return logger;
 };
 
-const loggerV2 = createLogger();
-export { createLogger, loggerV2 };
+const logger = createLogger();
+export { createLogger, logger };

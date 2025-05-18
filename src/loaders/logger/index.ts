@@ -1,6 +1,6 @@
-import { loggerV2 } from './winston/loggerV2';
+import { logger } from './winston/logger';
 import { Logger } from 'winston';
 
-const logger: Logger = loggerV2;
+const winstonLogger: Logger = logger;
 
-export { logger };
+export { winstonLogger };
