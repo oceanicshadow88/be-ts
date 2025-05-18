@@ -1,10 +1,6 @@
-import { buildDevLogger } from './winston/devLogger';
-import { buildProdLogger } from './winston/prodLogger';
+import { logger } from './winston/logger';
 import { Logger } from 'winston';
 
-const logger: Logger =
-  process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'dev'
-    ? buildDevLogger()
-    : buildProdLogger();
+const winstonLogger: Logger = logger;
 
-export { logger };
+export { winstonLogger };
