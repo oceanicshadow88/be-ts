@@ -1,6 +1,7 @@
 import request from 'supertest';
 import ProjectBuilder from './builders/projectBuilder';
 import app from '../setup/app';
+import { timeStamp } from 'console';
 
 describe('Project Test', () => {
   it('get projects, should get projects', async () => {
@@ -61,17 +62,29 @@ describe('Project Test', () => {
   it('should get project details', async () => {
     const project = await new ProjectBuilder().save();
     const res = await request(app.application).get(`/api/v2/projects/${project.id}/details`);
-
     expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveProperty('labels');
-    expect(res.body).toHaveProperty('users');
-    expect(res.body).toHaveProperty('ticketTypes');
-    expect(res.body).toHaveProperty('sprints');
-    expect(res.body).toHaveProperty('statuses');
-    expect(res.body).toHaveProperty('boards');
-    expect(res.body).toHaveProperty('epics');
-    expect(res.body).toHaveProperty('details');
-    expect(res.body).toHaveProperty('retroBoards');
+    expect(res.body).toEqual(
+      expect.objectContaining({
+        labels: [],
+        users: [],
+        ticketTypes: [],
+        sprints: [],
+        statuses: [],
+        boards: [],
+        epics: [],
+        details: expect.objectContaining({
+          id: project.id,
+          name: project.name,
+          key: project.key,
+          projectLead: project.projectLead.toString(),
+          owner: project.owner.toString(),
+          tenant: project.tenant.toString(),
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+        }),
+        retroBoards: [],
+      })
+    );
   });
 
 });
