@@ -15,7 +15,7 @@ declare module 'express-serve-static-core' {
 }
 
 const authenticationTokenMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const authorization = req.header('Authoriztion');
+  const authorization = req.header('Authorization');
   if (!authorization) {
     return res.sendStatus(status.UNAUTHORIZED);
   }
