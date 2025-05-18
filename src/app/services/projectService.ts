@@ -72,7 +72,6 @@ export const initProject = async (
   const RetroBoardModel = await RetroBoard.getModel(dbConnection);
   const defaultRetroBoard = await RetroBoardModel.findOne({ isPublic: true, title: 'Default' });
 
-  //use cache after all features move to v2
   const RoleModel = await Role.getModel(dbConnection);
   let initRoles = await RoleModel.find({});
   if (!initRoles || initRoles.length === 0) {
@@ -85,7 +84,7 @@ export const initProject = async (
       roles: initRoles,
       owner: ownerId,
       tenant: tenantId,
-      defaultRetroBoard: defaultRetroBoard?._id,
+      defaultRetroBoard: defaultRetroBoard?.id,
     });
     const statuses = await findOrCreateStatus(dbConnection, tenantId);
     findOrCreteBoard(
@@ -119,7 +118,7 @@ export const projectDetails = async (req: Request) => {
     throw new Error('Cannot find project');
   }
   const projectModel = Project.getModel(req.dbConnection);
-  const [labels, users, ticketTypes, sprints, statues, boards, epics, details, retroBoards] =
+  const [labels, users, ticketTypes, sprints, statuses, boards, epics, details, retroBoards] =
     await Promise.all([
       getLabel(req),
       getUserProjectRole(req),
@@ -136,7 +135,7 @@ export const projectDetails = async (req: Request) => {
     users,
     ticketTypes,
     sprints,
-    statues,
+    statuses,
     boards,
     epics,
     details,

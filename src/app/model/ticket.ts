@@ -1,6 +1,8 @@
-import mongoose, { Types } from 'mongoose';
+import mongoose, { CallbackWithoutResultAndOptionalError, Types } from 'mongoose';
+import * as Project from './project';
+import { dataConnectionPool } from '../utils/dbContext';
 
-const ticketSchema = new mongoose.Schema(
+export const ticketSchema = new mongoose.Schema(
   {
     title: {
       type: String,
@@ -78,9 +80,41 @@ const ticketSchema = new mongoose.Schema(
     attachmentUrls: {
       type: [String],
     },
+    ticketNumber: {
+      type: Number,
+      require: true,
+    },
+    temp: {
+      type: String,
+    },
   },
   { timestamps: true },
 );
+
+ticketSchema.pre('save', async function (this: any, next: CallbackWithoutResultAndOptionalError) {
+  if (!this.isNew) {
+    next();
+  }
+  const MAX_RETRIES = 3;
+  for (let i = 0; i < MAX_RETRIES; i++) {
+    try {
+      const project = await Project.getModel(dataConnectionPool[this.temp]).findByIdAndUpdate(
+        this.project,
+        { $inc: { ticketCounter: 1 } },
+        { new: true, upsert: true },
+      );
+      this.ticketNumber = project.ticketCounter;
+      this.temp = null;
+      return next();
+    } catch (err: any) {
+      if (err.code === 11000 && i < MAX_RETRIES - 1) {
+        // duplicate shortCode, retry
+        continue;
+      }
+      throw err;
+    }
+  }
+});
 
 ticketSchema.methods.toJSON = function () {
   const ticket = this;

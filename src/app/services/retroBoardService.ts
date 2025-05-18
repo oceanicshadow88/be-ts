@@ -40,10 +40,10 @@ export const initGlobalRetro = async (dbConnection: any) => {
   const RetroBoardModel = RetroBoard.getModel(dbConnection);
   const RetroStatusModel = RetroStatus.getModel(dbConnection);
   await RetroStatusModel.bulkWrite(bulkOps);
-  const statues = await RetroStatusModel.find({});
+  const statuses = await RetroStatusModel.find({});
   const result = new RetroBoardModel({
     title: 'Default',
-    statuses: statues.map((item) => item._id),
+    statuses: statuses.map((item) => item._id),
     isPublic: true,
   });
   await result.save();
