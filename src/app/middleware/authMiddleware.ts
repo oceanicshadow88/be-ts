@@ -22,7 +22,8 @@ const authenticationTokenMiddleware = (req: Request, res: Response, next: NextFu
 
   const [authType, token] = authorization.split(' ');
 
-  if (authType !== 'Bearer' || !token) return res.sendStatus(status.UNAUTHORIZED);
+  if (!token) return res.sendStatus(status.UNAUTHORIZED);
+  if (authType !== 'Bearer') return res.sendStatus(status.FORBIDDEN);
 
   jwt.verify(token, config.accessSecret, async (err, decoded) => {
     if (err) return res.sendStatus(status.FORBIDDEN);
@@ -31,7 +32,7 @@ const authenticationTokenMiddleware = (req: Request, res: Response, next: NextFu
     if (!decoded || typeof decoded !== 'object' || !('id' in decoded))
       return res.sendStatus(status.UNAUTHORIZED);
     const user = await userModel.findById(decoded.id);
-    if (!user) return res.sendStatus(status.UNAUTHORIZED);
+    if (!user) return res.sendStatus(status.FORBIDDEN);
 
     req.user = user;
     req.token = token;
@@ -51,8 +52,9 @@ const authenticationRefreshTokenMiddleware = async (
   if (!authorization) return res.sendStatus(status.UNAUTHORIZED);
 
   const [authType, , authRefreshToken] = authorization.split(' ');
+  if (!authRefreshToken) return res.sendStatus(status.UNAUTHORIZED);
 
-  if (authType !== 'Bearer' || !authRefreshToken) return res.sendStatus(status.UNAUTHORIZED);
+  if (authType !== 'Bearer') return res.sendStatus(status.FORBIDDEN);
 
   jwt.verify(authRefreshToken, config.accessSecret, async (err, decoded) => {
     if (err) return res.sendStatus(status.FORBIDDEN);
