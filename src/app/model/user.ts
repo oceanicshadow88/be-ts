@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import config from '../config/app';
 import bcrypt from 'bcrypt';
 import { randomStringGenerator } from '../utils/randomStringGenerator';
-import { logger } from '../../loaders/logger';
+import { winstonLogger } from '../../loaders/logger';
 
 export interface IProjectRole {
   project: Types.ObjectId;
@@ -130,7 +130,7 @@ userSchema.statics.findByCredentials = async function (email: string, password: 
     return null;
   }
   if (user.active === false) {
-    logger.info('User has not active account:' + email);
+    winstonLogger.info('User has not active account:' + email);
     return undefined;
   }
 
