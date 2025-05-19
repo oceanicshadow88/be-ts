@@ -20,7 +20,7 @@ import mongoose, { Mongoose, Types } from 'mongoose';
 export const findTickets = async (
   dbConnection: Mongoose,
   tenantConnection: Mongoose,
-  ...filters: Record<string, any>[]
+  ticketsFilter: Record<string, any>,
 ) => {
   try {
     const ticketModel = await Ticket.getModel(dbConnection);
@@ -37,9 +37,8 @@ export const findTickets = async (
 
     const projectModel = await Project.getModel(dbConnection);
 
-    const mergedFilter = Object.assign({}, ...filters);
-  
-    const tickets = await ticketModel.find(mergedFilter)
+    const tickets = await ticketModel
+      .find(ticketsFilter)
       .populate({ path: 'type', model: typeModel })
       .populate({
         path: 'labels',
@@ -103,11 +102,7 @@ export const createTicket = async (req: Request) => {
     throw new Error('Create Activity failed');
   }
 
-  const result = await findTickets(
-    req.dbConnection,
-    req.tenantsConnection,
-    { _id: ticket._id },
-  );
+  const result = await findTickets(req.dbConnection, req.tenantsConnection, { _id: ticket._id });
   return result[0];
 };
 
@@ -260,11 +255,7 @@ export const updateTicket = async (req: Request) => {
     throw new Error('Create Activity failed');
   }
 
-  const result = await findTickets(
-    req.dbConnection,
-    req.tenantsConnection,
-    { _id: id },
-  );
+  const result = await findTickets(req.dbConnection, req.tenantsConnection, { _id: id });
   return result[0];
 };
 
@@ -327,9 +318,5 @@ export const getTicketsByEpic = async (req: Request) => {
 };
 
 export const getShowTicket = (req: Request) => {
-  return findTickets(
-    req.dbConnection,
-    req.tenantsConnection,
-    { _id: req.params.id },
-  );
+  return findTickets(req.dbConnection, req.tenantsConnection, { _id: req.params.id });
 };
