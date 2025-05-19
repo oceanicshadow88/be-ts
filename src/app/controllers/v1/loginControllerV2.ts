@@ -6,6 +6,7 @@ import { asyncHandler } from '../../utils/helper';
 import { checkUserTenants } from '../../services/loginService';
 import status from 'http-status';
 import config from '../../config/app';
+import { EntityError } from '../../error/entityError';
 declare module 'express-serve-static-core' {
   interface Request {
     userId?: string;
@@ -19,7 +20,7 @@ declare module 'express-serve-static-core' {
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(status.UNPROCESSABLE_ENTITY).json({});
+    throw EntityError.unprocessableEntity('Validation failed', { errors: errors.array() });
   }
 
   const origin = req.get('origin');

@@ -67,7 +67,8 @@ import { config } from '../../config/app';
 
 // ----------------------- register -------------------------
 //apply tenant and register-stepOne-V2
-router.post('/register', registerV2Controller.register);
+router.post('/register', registerValidation.register, registerV2Controller.register);
+// This endpoint validates registration data and initiates the account creation flow
 router.get('/healthcheck', healthCheckController.index);
 router.get('/domains/exists', domainController.isValidDomain);
 router.get('/domains', domainController.index);
@@ -401,14 +402,8 @@ router.post(
   importController.importProjectByCsv,
 );
 //export
-router.get(
-  '/export-project/fields',
-  exportController.exportTicketFields,
-);
-router.get(
-  '/export-project/:projectId/tickets',
-  exportController.exportTicketsCsv,
-);
+router.get('/export-project/fields', exportController.exportTicketFields);
+router.get('/export-project/:projectId/tickets', exportController.exportTicketsCsv);
 // dashboard
 router.get('/projects/:projectId/dashboards', dashboardValidations.show, dashboardController.show);
 router.get(

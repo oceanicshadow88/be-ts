@@ -2,7 +2,7 @@ import { Request } from 'express';
 import * as comment from '../model/comment';
 import * as User from '../model/user';
 import { replaceId } from '../services/replaceService';
-import NotFoundError from '../error/notFound';
+import { AppError } from '../error/appError';
 
 export const getComment = async (req: Request) => {
   const userModel = await User.getModel(req.tenantsConnection);
@@ -21,7 +21,7 @@ export const createComment = async (req: Request) => {
     content,
   });
   if (!newComment) {
-    throw new NotFoundError('Comment not found');
+    throw AppError.notFound('Comment not found');
   }
   return replaceId(newComment);
 };
@@ -34,7 +34,7 @@ export const updateComment = async (req: Request) => {
     .getModel(req.dbConnection)
     .findByIdAndUpdate({ _id: id }, { content, updatedAt }, { new: true });
   if (!updatedComment) {
-    throw new NotFoundError('Not found');
+    throw  AppError.notFound('Not found');
   }
   return replaceId(updatedComment);
 };
@@ -43,6 +43,6 @@ export const deleteComment = async (req: Request) => {
   const { id } = req.params;
   await comment.getModel(req.dbConnection).findByIdAndDelete({ _id: id });
   if (!deleteComment) {
-    throw new NotFoundError('Not found');
+    throw AppError.notFound('Not found');
   }
 };

@@ -6,7 +6,7 @@ import * as Project from '../model/project';
 import { Request } from 'express';
 import * as Ticket from '../model/ticket';
 import { replaceId } from './replaceService';
-import NotFoundError from '../error/notFound';
+import { AppError } from '../error/appError';
 import { GPT_MODEL, USER_ROLE } from '../config/openAi';
 import { getDashboardCounts } from './dashboardService';
 import { openai } from './openAiService';
@@ -129,7 +129,7 @@ export const updateDailyScrum = async (req: Request) => {
     },
   );
   if (!newDailyScrum) {
-    throw new NotFoundError('Daily Scrum not found');
+    throw AppError.notFound('Daily Scrum not found');
   }
 
   return replaceId(newDailyScrum);
