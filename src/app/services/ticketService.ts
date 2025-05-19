@@ -59,10 +59,9 @@ export const findTickets = async (
         path: 'comments',
         model: commentModel,
       })
-
       .populate({ 
         path: 'project', 
-        model: projectModel
+        model: projectModel,
       })
       .sort({ createdAt: 1 });
 
