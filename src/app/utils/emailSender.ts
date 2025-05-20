@@ -2,7 +2,7 @@ import { invalidSubdomains } from '../controllers/v1/registerV2Controller';
 
 const aws = require('aws-sdk');
 import config from '../config/app';
-import { logger } from '../../loaders/logger';
+import { winstonLogger } from '../../loaders/logger';
 import awsConfig from '../config/aws';
 
 aws.config.update({
@@ -13,9 +13,9 @@ aws.config.update({
 
 function cb(email_err: any, email_data: any): void {
   if (email_err) {
-    logger.error('Failed to send to email:' + email_err);
+    winstonLogger.error('Failed to send to email:' + email_err);
   } else {
-    logger.info(`Email Sent Success: ${JSON.stringify(email_data)}`);
+    winstonLogger.info(`Email Sent Success: ${JSON.stringify(email_data)}`);
   }
 }
 

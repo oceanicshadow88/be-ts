@@ -3,7 +3,7 @@ import { emailSender } from '../utils/emailSender';
 import * as User from '../model/user';
 import jwt from 'jsonwebtoken';
 import config from '../config/app';
-import { logger } from '../../loaders/logger';
+import { winstonLogger } from '../../loaders/logger';
 
 const emailRegister = async (email: string, dbConnection: any, domain: string) => {
   const activeCode = randomStringGenerator(16);
@@ -15,7 +15,7 @@ const emailRegister = async (email: string, dbConnection: any, domain: string) =
     );
 
     if (!config?.emailSecret) {
-      logger.error('Missing email secret in env');
+      winstonLogger.error('Missing email secret in env');
       return null;
     }
 

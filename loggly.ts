@@ -1,44 +1,62 @@
 /* eslint-disable no-console */
-const fs = require('fs');
-const axios = require('axios');
-const path = require('path');
-const dotenv = require('dotenv');
+import * as fs from 'fs';
+import * as path from 'path';
+import axios from 'axios';
+import * as dotenv from 'dotenv';
+
 dotenv.config();
 
-const appRoot = path.dirname(require?.main?.filename);
+const appRoot = path.dirname(require?.main?.filename ?? '');
 const parentDirectory = path.resolve(appRoot, '..');
 const LOGGLY_ENDPOINT = process.env.LOGGLY_ENDPOINT;
-const LOG_FILE_PATH = path.join(parentDirectory, 'storage', 'logs', 'logger.log');
-console.log(appRoot, LOG_FILE_PATH);
-fs.readFile(LOG_FILE_PATH, 'utf8', async (err:any, logData:any) => {
-  if (err) {
-    console.error('Failed to read the log file:', err);
-    return;
+const LOG_DIR = path.join(parentDirectory, 'storage', 'logs');
+
+const getLogFiles = () => {
+  return fs.readdirSync(LOG_DIR)
+    .filter(file => file.startsWith('logger-') && file.endsWith('.log'))
+    .map(file => path.join(LOG_DIR, file));
+};
+
+const processLogFile = async (logFile: string) => {
+  const logData = await fs.promises.readFile(logFile, 'utf8');
+  if (!logData) {
+    console.log(`Log file ${logFile} is empty.`);
+    return { file: logFile, status: 'empty' };
   }
 
-  if (!logData) {
-    console.log('No logs to send.');
-    return;
-  }
-  
-  const response = await axios.post(LOGGLY_ENDPOINT,  {
+  const response = await axios.post(LOGGLY_ENDPOINT as string, logData, {
     headers: {
       'Content-Type': 'text/plain',
     },
-    body: logData,
-  }).catch((errorAxios:any) => {
-    console.error('Failed to send logs to Loggly:', errorAxios.message);
   });
 
   if (response.status !== 200) {
-    console.error('Loggly responded with status:', response.status, response.data);
-    process.exit();
+    throw new Error(`Loggly responded with status: ${response.status}, data: ${JSON.stringify(response.data)}`);
   }
 
-  // Optional: Clear the log file after sending.
-  fs.truncate(LOG_FILE_PATH, 0, (errMessage:any) => {
-    if (errMessage) {
-      console.error('Failed to clear the log file:', errMessage);
-    }
-  });
+  console.log(`Successfully sent log file ${logFile} to Loggly`);
+  return { file: logFile, status: 'success' };
+};
+
+const sendLogsToLoggly = async () => {
+  const logFiles = getLogFiles();
+
+  if (!logFiles.length) {
+    console.log('No log files found to send.');
+    return;
+  }
+
+  const results = await Promise.all(logFiles.map(processLogFile));
+
+  for (const file of logFiles) {
+    await fs.promises.unlink(file);
+    console.log(`Deleted log file ${file}`);
+  }
+
+  console.log('All log files processed successfully, results:', results);
+};
+
+sendLogsToLoggly().catch(err => {
+  console.error('Failed to send logs to Loggly:', err.message);
+  process.exit(1);
 });

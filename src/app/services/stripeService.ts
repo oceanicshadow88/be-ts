@@ -3,7 +3,7 @@ import * as StripePrice from '../model/stripePrice';
 import * as StripeSession from '../model/stripeSession';
 import * as StripeSubscription from '../model/stripeSubscription';
 import * as Tenant from '../model/tenants';
-import { logger } from '../../loaders/logger';
+import { winstonLogger } from '../../loaders/logger';
 import mongoose, { Mongoose } from 'mongoose';
 import { getStripe } from '../lib/stripe';
 import { Stripe } from 'stripe';
@@ -105,7 +105,7 @@ export const createStripeCustomerPortal = async (
   tenantId: string,
 ) => {
   if (customerId === '') {
-    logger.error('stripeService: Missing customer Id');
+    winstonLogger.error('stripeService: Missing customer Id');
     throw new Error('Missing customer Id');
   }
   const returnURL = domainUrl + '/projects';
@@ -161,7 +161,7 @@ export const getSubscriptionHistory = async (tenantsConnection: Mongoose, tenant
   for (let product of tenantInfo.tenantTrialHistory) {
     const productInfo = await productModel.findOne({ stripeProductId: product.productId });
     if (!productInfo) {
-      logger.error('stripeService: Missing product info');
+      winstonLogger.error('stripeService: Missing product info');
       throw new Error('product info not found');
     }
     customerSubscriptionHistory.push(productInfo.stripeProductName);
@@ -176,7 +176,7 @@ export const getCurrentPlanId = async (tenantId: string, tenantsConnection: Mong
     stripeSubscriptionStatus: { $in: ['active', 'trialing'] },
   });
   if (!tenantSubscriptionInfo) {
-    logger.error('stripeService: Missing tenant subscription info');
+    winstonLogger.error('stripeService: Missing tenant subscription info');
     throw new Error('tenant subscription info not found');
   }
   const stripeProductId = tenantSubscriptionInfo.stripeProductId;
@@ -196,7 +196,7 @@ export const getFreePlanPriceId = async () => {
       model: stripePriceModel,
     });
   if (!freePlanProduct) {
-    logger.error('stripeService: Missing free plan Product');
+    winstonLogger.error('stripeService: Missing free plan Product');
     throw new Error('Free plan is not found');
   }
   const freePlanPriceId = freePlanProduct.stripePrices.monthly?.stripePriceId;
@@ -209,7 +209,7 @@ export const getFreePlanProductId = async () => {
   const stripeProductModel = StripeProduct.getModel(tenantsConnection);
   const freePlanProduct = await stripeProductModel.findOne({ stripeProductName: FREE_PLAN });
   if (!freePlanProduct) {
-    logger.error('stripeService: Missing free plan Product');
+    winstonLogger.error('stripeService: Missing free plan Product');
     throw new Error('Free plan is not found');
   }
   const freePlanProductId = freePlanProduct.stripeProductId;
@@ -218,7 +218,7 @@ export const getFreePlanProductId = async () => {
 
 export const isCurrentPlanFree = async (tenantId: string) => {
   if (tenantId === '') {
-    logger.error('stripeService: Missing tenant Id');
+    winstonLogger.error('stripeService: Missing tenant Id');
     throw new Error('TenantId is not found');
   }
   const tenantsConnection = await tenantsDBConnection();
@@ -228,7 +228,7 @@ export const isCurrentPlanFree = async (tenantId: string) => {
   });
   const freePlanPriceId = await getFreePlanPriceId();
   if (!tenantSubscriptionInfo) {
-    logger.error('stripeService: Missing tenant subscription info');
+    winstonLogger.error('stripeService: Missing tenant subscription info');
     throw new Error('tenant subscription info not found');
   }
   const stripePriceId = tenantSubscriptionInfo.stripePriceId;
@@ -290,7 +290,7 @@ const getPriceIdByProductId = async (tenantsConnection: Mongoose, currentPlan: s
     });
 
   if (!relatedPriceId) {
-    logger.error('stripeService: Missing stripe priceId');
+    winstonLogger.error('stripeService: Missing stripe priceId');
     throw new Error('Stripe priceId not found');
   }
   return relatedPriceId;
@@ -358,7 +358,7 @@ const saveStripeCheckoutData = async (
   const stripeProductModel = StripeProduct.getModel(tenantsConnection);
   const stripeProduct = await stripeProductModel.findOne({ stripeProductId: productId });
   if (!stripeProduct) {
-    logger.error('stripeService: Missing stripe product');
+    winstonLogger.error('stripeService: Missing stripe product');
     throw new Error('Stripe product not found');
   }
   const stripeProductName = stripeProduct.stripeProductName.toLowerCase();
@@ -397,7 +397,7 @@ const handleCheckoutSessionCompleted = async (
     stripeSubscriptionStatus: { $in: ['active', 'trialing'] },
   });
   if (!tenantActiveSubscriptionInfo) {
-    logger.error('stripeService: Missing tenant active subscription information');
+    winstonLogger.error('stripeService: Missing tenant active subscription information');
     throw new Error('Tenant active subscription info not found');
   }
   await getStripe().subscriptions.cancel(tenantActiveSubscriptionInfo.stripeSubscriptionId);

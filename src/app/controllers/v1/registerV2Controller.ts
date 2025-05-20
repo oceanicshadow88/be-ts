@@ -6,7 +6,7 @@ import status from 'http-status';
 import * as Tenant from '../../model/tenants';
 import * as User from '../../model/user';
 import { emailRegister } from '../../services/registerServiceV2';
-import { logger } from '../../../loaders/logger';
+import { winstonLogger } from '../../../loaders/logger';
 import { tenantsDBConnection } from '../../database/connections';
 import config from '../../config/app';
 
@@ -80,7 +80,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
       .json({ status: 'success', data: { newTenants, newUser, validationToken } });
   } catch (err: any) {
     // delete tenant if error
-    logger.error('registerV2Controller Fail:' + err);
+    winstonLogger.error('registerV2Controller Fail:' + err);
     await tenantModel.findOneAndDelete({ origin: tenantsUrl });
     res.status(status.INTERNAL_SERVER_ERROR).json({ status: 'fail', err: err?.message });
   }
