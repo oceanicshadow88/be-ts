@@ -7,7 +7,7 @@ import status from 'http-status';
 import * as Tenant from '../model/tenants';
 import config from '../../app/config/app';
 import { dataConnectionPool } from '../utils/dbContext';
-import { logger } from '../../loaders/logger';
+import { winstonLogger } from '../../loaders/logger';
 import { tenantsDBConnection, tenantDBConnection, PUBLIC_DB } from '../database/connections';
 
 enum Plans {
@@ -24,7 +24,7 @@ const getTenant = async (host: string | undefined, connection: any, isLocalEnv: 
     : await tenantModel.findOne({ origin: host });
 
   if (!config?.emailSecret) {
-    logger.error('Missing email secret in env');
+    winstonLogger.error('Missing email secret in env');
     throw new Error('Missing email secret in env');
   }
 
@@ -83,7 +83,7 @@ const saas = asyncHandler(async (req: Request, res: Response, next: NextFunction
       console.error(message);
     }
 
-    logger.error(message ?? e);
+    winstonLogger.error(message ?? e);
     return res.sendStatus(status.INTERNAL_SERVER_ERROR);
   }
   return next();

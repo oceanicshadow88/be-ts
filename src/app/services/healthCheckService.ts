@@ -4,7 +4,7 @@ const { tenantsDBConnection, tenantDBConnection, PUBLIC_DB } = require('../datab
 import config from '../config/app';
 import whois from 'whois-json';
 import awsConfig from '../config/aws';
-import { logger } from '../../loaders/logger';
+import { winstonLogger } from '../../loaders/logger';
 
 interface RegistrationData {
   domainStatus?: string | undefined;
@@ -79,6 +79,6 @@ export const healthCheck = async () => {
     'AWS SES Templates: ' +
     hasAllTemplatesUploaded +
     '\n';
-  logger.info(message.replace(/\[\d+m/g, '').replace(/\x1B\[\d+m/g, ''));
+  winstonLogger.info(message.replace(/\[\d+m/g, '').replace(/\x1B\[\d+m/g, ''));
   return message;
 };
