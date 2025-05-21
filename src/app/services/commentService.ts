@@ -2,7 +2,9 @@ import { Request } from 'express';
 import * as comment from '../model/comment';
 import * as User from '../model/user';
 import { replaceId } from '../services/replaceService';
-import NotFoundError from '../error/notFound';
+import { AppError } from '../error/appError';
+import httpStatus from 'http-status';
+import { EntityError } from '../error/entityError';
 
 export const getComment = async (req: Request) => {
   const userModel = await User.getModel(req.tenantsConnection);
@@ -21,7 +23,7 @@ export const createComment = async (req: Request) => {
     content,
   });
   if (!newComment) {
-    throw new NotFoundError('Comment not found');
+    throw new AppError('Comment not found', httpStatus.NOT_FOUND);
   }
   return replaceId(newComment);
 };
@@ -34,7 +36,7 @@ export const updateComment = async (req: Request) => {
     .getModel(req.dbConnection)
     .findByIdAndUpdate({ _id: id }, { content, updatedAt }, { new: true });
   if (!updatedComment) {
-    throw new NotFoundError('Not found');
+    throw new AppError('Not found', httpStatus.NOT_FOUND);
   }
   return replaceId(updatedComment);
 };
@@ -43,6 +45,6 @@ export const deleteComment = async (req: Request) => {
   const { id } = req.params;
   await comment.getModel(req.dbConnection).findByIdAndDelete({ _id: id });
   if (!deleteComment) {
-    throw new NotFoundError('Not found');
+    throw new EntityError('Comment not found', httpStatus.NOT_FOUND);
   }
 };
