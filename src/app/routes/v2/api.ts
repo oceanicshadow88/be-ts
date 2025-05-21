@@ -68,7 +68,6 @@ import { config } from '../../config/app';
 // ----------------------- register -------------------------
 //apply tenant and register-stepOne-V2
 router.post('/register', registerValidation.register, registerV2Controller.register);
-// This endpoint validates registration data and initiates the account creation flow
 router.get('/healthcheck', healthCheckController.index);
 router.get('/domains/exists', domainController.isValidDomain);
 router.get('/domains', domainController.index);

@@ -21,12 +21,4 @@ export class AppError extends Error {
       Error.captureStackTrace(this, this.constructor);
     }
   }
-
-  static badRequest(message: string, context: Record<string, unknown> = {}) {
-    return new AppError(message, httpStatus.BAD_REQUEST, context);
-  }
-
-  static notFound(message: string, context: Record<string, unknown> = {}) {
-    return new AppError(message, httpStatus.NOT_FOUND, context);
-  }
 }

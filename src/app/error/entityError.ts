@@ -1,5 +1,4 @@
 import { AppError } from './appError';
-import httpStatus from 'http-status';
 
 class EntityError extends AppError {
 
@@ -7,14 +6,6 @@ class EntityError extends AppError {
     super(message);
     this.statusCode = statusCode;
     this.context = context;
-  }
-
-  static unprocessableEntity(message: string, context = {}) {
-    return new EntityError(message, httpStatus.UNPROCESSABLE_ENTITY, context);
-  }
-
-  static alreadyExists(message: string, context = {}) {
-    return new EntityError(message, httpStatus.CONFLICT, context);
   }
 }
 

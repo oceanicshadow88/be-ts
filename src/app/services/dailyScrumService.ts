@@ -10,7 +10,7 @@ import { AppError } from '../error/appError';
 import { GPT_MODEL, USER_ROLE } from '../config/openAi';
 import { getDashboardCounts } from './dashboardService';
 import { openai } from './openAiService';
-
+import httpStatus from 'http-status';
 const {
   removeDuplicateDate,
   convertTimestampToDate,
@@ -129,7 +129,7 @@ export const updateDailyScrum = async (req: Request) => {
     },
   );
   if (!newDailyScrum) {
-    throw AppError.notFound('Daily Scrum not found');
+    throw new AppError('Daily Scrum not found', httpStatus.NOT_FOUND);
   }
 
   return replaceId(newDailyScrum);
