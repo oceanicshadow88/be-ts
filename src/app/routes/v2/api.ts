@@ -197,11 +197,12 @@ router.patch(
 
 router.post(
   '/auto-fetch-userInfo',
-  authenticationRefreshTokenMiddleware,
+  authenticationTokenMiddleware,
   loginControllerV2.autoFetchUserInfo,
 );
 
 router.get('/projects', authenticationTokenMiddleware, projectsController.index);
+
 router.get(
   '/projects/:id',
   authenticationTokenMiddleware,
