@@ -27,6 +27,7 @@ const tenantsDBConnection = async () => {
 const tenantDBConnection = async (tenant: string) => {
   if (!dataConnectionPool || !dataConnectionPool[tenant]!) {
     const dataConnectionMongoose = await mongoose.createConnection(
+      // to be fixed: tenant DB uri doesn't include PUBLIC_DB
       config.publicConnection.replace(PUBLIC_DB, tenant),
       options,
     );

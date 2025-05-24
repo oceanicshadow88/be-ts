@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import httpStatus from 'http-status';
-import * as importService from '../../services/importService';
+import { sendMessageToQueue } from '../../services/mq/publisher';
 
 export const importProjectByCsv = async (req: Request, res: Response): Promise<void> => {
   const input = req.file?.buffer || req.file?.path;
@@ -11,9 +11,17 @@ export const importProjectByCsv = async (req: Request, res: Response): Promise<v
   }
 
   try {
-    await importService.processCsv(input, req.dbConnection, req.tenantId, req.ownerId);
-    res.status(httpStatus.OK).json({ message: 'CSV processed successfully' });
+    const csvBase64 = Buffer.isBuffer(input)
+      ? input.toString('base64')
+      : fs.readFileSync(input).toString('base64');
+
+    await sendMessageToQueue('csvImportQueue', {
+      tenantId: req.tenantId,
+      ownerId: req.ownerId,
+      csvBase64,
+    });
+    res.status(httpStatus.ACCEPTED).json({ message: 'CSV import task has been queued.' });
   } catch (err) {
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ error: 'Failed to process CSV file' });
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ error: 'Failed to queue CSV import task' });
   }
 };
