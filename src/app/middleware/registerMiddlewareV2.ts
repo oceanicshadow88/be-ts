@@ -18,16 +18,19 @@ const authenticationEmailTokenMiddlewareV2 = async (
   const token = req.params.token;
   jwt.verify(token, config.emailSecret, async (err: any) => {
     if (err) return res.status(status.FORBIDDEN).send();
-    const result:any = await jwt.verify(token, config.emailSecret);
+    const result: any = await jwt.verify(token, config.emailSecret);
     const resUserDbConnection = req.tenantsConnection;
 
     const userModel = await User.getModel(resUserDbConnection);
     const user = await userModel.findById(result.id);
-    
+
     // if user is not active, continue registration process
     if (user && !user.active) {
       req.verifyEmail = user.email;
       return next();
+    }
+    if (!user?.tenants) {
+      return res.sendStatus(status.INTERNAL_SERVER_ERROR);
     }
     // if user is active, skip registration and active this tenant
     const activeTenant = user.tenants.at(-1);
