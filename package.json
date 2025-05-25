@@ -54,7 +54,8 @@
     "openai": "^3.2.1",
     "stripe": "^17.7.0",
     "whois-json": "^2.0.4",
-    "winston": "^3.7.2"
+    "winston": "^3.7.2",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.22.11",

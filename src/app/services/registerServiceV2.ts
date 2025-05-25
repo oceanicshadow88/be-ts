@@ -1,6 +1,6 @@
 import { emailSender, getDomain } from '../utils/emailSender';
 import jwt from 'jsonwebtoken';
-import { logger } from '../../loaders/logger';
+import { winstonLogger } from '../../loaders/logger';
 import mongoose from 'mongoose';
 import * as User from '../model/user';
 import config from '../config/app';
@@ -12,7 +12,7 @@ export const emailRegister = async (
   origin: string | null,
 ) => {
   if (!config?.emailSecret) {
-    logger.error('Missing email secret in env');
+    winstonLogger.error('Missing email secret in env');
     throw new Error('Missing email secret in env');
   }
   const userModel = User.getModel(resUserDbConnection);
@@ -42,7 +42,7 @@ export const emailRegister = async (
     validationToken = jwt.sign({ id: newUser.id }, config.emailSecret);
     emailSender(email, `token=${validationToken}`, getDomain(newTenants.origin, origin || ''));
   } catch (e) {
-    logger.error('registerServiceV2 Fail:' + e);
+    winstonLogger.error('registerServiceV2 Fail:' + e);
     if (newUser.tenants.length === 0) {
       userModel.deleteOne({ email });
     } else {

@@ -57,4 +57,33 @@ describe('Project Test', () => {
       .send({ ...project, ...{ key: null } })
       .expect(422);
   });
+
+  it('should get project details', async () => {
+    const project = await new ProjectBuilder().save();
+    const res = await request(app.application).get(`/api/v2/projects/${project.id}/details`);
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual(
+      expect.objectContaining({
+        labels: [],
+        users: [],
+        ticketTypes: [],
+        sprints: [],
+        statuses: [],
+        boards: [],
+        epics: [],
+        details: expect.objectContaining({
+          id: project.id,
+          name: project.name,
+          key: project.key,
+          projectLead: project.projectLead.toString(),
+          owner: project.owner.toString(),
+          tenant: project.tenant.toString(),
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+        }),
+        retroBoards: [],
+      })
+    );
+  });
+
 });

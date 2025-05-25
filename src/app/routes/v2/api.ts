@@ -4,10 +4,7 @@ import * as projectsController from '../../controllers/v1/projectsController';
 import * as projectValidation from '../../validations/project';
 import * as tenantValidations from '../../validations/tenant';
 import * as tenantControllers from '../../controllers/v1/tenantController';
-import {
-  authenticationTokenMiddleware,
-  authenticationRefreshTokenMiddleware,
-} from '../../middleware/authMiddleware';
+import { authenticationTokenMiddleware } from '../../middleware/authMiddleware';
 import { authenticationEmailTokenMiddlewareV2 } from '../../middleware/registerMiddlewareV2';
 import { authenticationForgetPasswordMiddleware } from '../../middleware/forgetPasswordMiddleware';
 import * as loginControllerV2 from '../../controllers/v1/loginControllerV2';
@@ -197,11 +194,12 @@ router.patch(
 
 router.post(
   '/auto-fetch-userInfo',
-  authenticationRefreshTokenMiddleware,
+  authenticationTokenMiddleware,
   loginControllerV2.autoFetchUserInfo,
 );
 
 router.get('/projects', authenticationTokenMiddleware, projectsController.index);
+
 router.get(
   '/projects/:id',
   authenticationTokenMiddleware,
@@ -401,14 +399,8 @@ router.post(
   importController.importProjectByCsv,
 );
 //export
-router.get(
-  '/export-project/fields',
-  exportController.exportTicketFields,
-);
-router.get(
-  '/export-project/:projectId/tickets',
-  exportController.exportTicketsCsv,
-);
+router.get('/export-project/fields', exportController.exportTicketFields);
+router.get('/export-project/:projectId/tickets', exportController.exportTicketsCsv);
 // dashboard
 router.get('/projects/:projectId/dashboards', dashboardValidations.show, dashboardController.show);
 router.get(
