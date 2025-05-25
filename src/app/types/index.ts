@@ -38,6 +38,8 @@ export interface ITicket {
   attachmentUrls: string[];
   createdAt: string;
   updatedAt: string;
+  ticketNumber: string;
+  temp?: string | null;
 }
 
 import { Document } from 'mongoose';
