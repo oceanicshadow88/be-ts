@@ -2,7 +2,6 @@ import { CallbackWithoutResultAndOptionalError, Schema, Types } from 'mongoose';
 import jwt from 'jsonwebtoken';
 import config from '../config/app';
 import bcrypt from 'bcrypt';
-import { randomStringGenerator } from '../utils/randomStringGenerator';
 import { winstonLogger } from '../../loaders/logger';
 
 export interface IProjectRole {
