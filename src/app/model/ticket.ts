@@ -1,4 +1,4 @@
-import mongoose, { CallbackWithoutResultAndOptionalError, Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import * as Project from './project';
 import { dataConnectionPool } from '../utils/dbContext';
 
@@ -91,29 +91,31 @@ export const ticketSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-ticketSchema.pre('save', async function (this: any, next: CallbackWithoutResultAndOptionalError) {
-  if (!this.isNew) {
-    next();
+async function assignTicketNumber(doc: any) {
+  if (doc.project && doc.temp) {
+    const project = await Project.getModel(dataConnectionPool[doc.temp]).findByIdAndUpdate(
+      doc.project,
+      { $inc: { ticketCounter: 1 } },
+      { new: true, upsert: true },
+    );
+    doc.ticketNumber = project.ticketCounter;
+    doc.temp = null;
   }
-  const MAX_RETRIES = 3;
-  for (let i = 0; i < MAX_RETRIES; i++) {
-    try {
-      const project = await Project.getModel(dataConnectionPool[this.temp]).findByIdAndUpdate(
-        this.project,
-        { $inc: { ticketCounter: 1 } },
-        { new: true, upsert: true },
-      );
-      this.ticketNumber = project.ticketCounter;
-      this.temp = null;
-      return next();
-    } catch (err: any) {
-      if (err.code === 11000 && i < MAX_RETRIES - 1) {
-        // duplicate shortCode, retry
-        continue;
-      }
-      throw err;
-    }
+}
+
+// For individual saves
+ticketSchema.pre('save', async function (next) {
+  if (!this.isNew) return next();
+  await assignTicketNumber(this);
+  next();
+});
+
+// For bulk inserts
+ticketSchema.pre('insertMany', async function (next, docs) {
+  for (const doc of docs) {
+    await assignTicketNumber(doc);
   }
+  next();
 });
 
 ticketSchema.methods.toJSON = function () {
