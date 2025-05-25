@@ -11,7 +11,7 @@ export const importProjectByCsv = async (req: Request, res: Response): Promise<v
   }
 
   try {
-    await importService.processCsv(input, req.dbConnection, req.tenantId, req.ownerId);
+    await importService.processCsv(input, req.dbConnection, req.tenantId, req.ownerId, req.dbName);
     res.status(httpStatus.OK).json({ message: 'CSV processed successfully' });
   } catch (err) {
     res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ error: 'Failed to process CSV file' });

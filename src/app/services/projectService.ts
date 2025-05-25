@@ -19,7 +19,7 @@ import { getEpicByProject } from './epicService';
 import { DEFAULT_STATUS } from '../database/seeders/statusSeeder';
 //Typo error
 
-const findOrCreteBoard = async (dbConnection: Mongoose, body: any, tenantId: string) => {
+const findOrCreateBoard = async (dbConnection: Mongoose, body: any, tenantId: string) => {
   const tenantObjectId = new Types.ObjectId(tenantId);
   const boardModel = Board.getModel(dbConnection);
   const existingBoard = await boardModel.findOne({
@@ -73,7 +73,7 @@ export const initProject = async (
   const defaultRetroBoard = await RetroBoardModel.findOne({ isPublic: true, title: 'Default' });
 
   const RoleModel = await Role.getModel(dbConnection);
-  let initRoles = await RoleModel.find({});
+  const initRoles = await RoleModel.find({});
   if (!initRoles || initRoles.length === 0) {
     init(dbConnection);
   }
@@ -87,7 +87,7 @@ export const initProject = async (
       defaultRetroBoard: defaultRetroBoard?.id,
     });
     const statuses = await findOrCreateStatus(dbConnection, tenantId);
-    findOrCreteBoard(
+    findOrCreateBoard(
       dbConnection,
       { name: body.name, statuses: statuses.map((doc) => doc._id) },
       tenantId,

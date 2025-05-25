@@ -80,9 +80,10 @@ async function handleParsedCsv(
   tenantId: string,
   ownerId: string | undefined,
   batchSize: number,
+  temp?: string,
 ) {
-  const session = await connection.startSession();
-  session.startTransaction();
+  // const session = await connection.startSession();
+  // session.startTransaction();
 
   const ProjectModel = Project.getModel(connection);
   const TicketModel = Ticket.getModel(connection);
@@ -90,7 +91,7 @@ async function handleParsedCsv(
 
   try {
     const projectObject = buildProjectObjectRequiredOnly(firstRow, tenantId, ownerId);
-    const project = await ProjectModel.create([projectObject], { session });
+    const project = await ProjectModel.create([projectObject]);
 
     let batch: any[] = [];
     let ticketInsertPromises: Promise<any>[] = [];
@@ -103,27 +104,27 @@ async function handleParsedCsv(
 
     for (const ticketRow of tickets) {
       const ticketObj = buildTicketObjectRequiredOnly(ticketRow, typeId, project[0]._id);
-      batch.push(ticketObj);
+      batch.push({ ...ticketObj, ...{ temp } });
 
       if (batch.length === batchSize) {
-        ticketInsertPromises.push(TicketModel.insertMany(batch, { session }));
+        ticketInsertPromises.push(TicketModel.insertMany(batch));
         batch = [];
       }
     }
 
     if (batch.length > 0) {
-      ticketInsertPromises.push(TicketModel.insertMany(batch, { session }));
+      ticketInsertPromises.push(TicketModel.insertMany(batch));
     }
 
     await Promise.all(ticketInsertPromises);
-    await session.commitTransaction();
+    // await session.commitTransaction();
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('CSV import failed', error);
-    await session.abortTransaction();
+    // await session.abortTransaction();
     throw error;
   } finally {
-    await session.endSession();
+    // await session.endSession();
   }
 }
 
@@ -132,6 +133,7 @@ export async function processCsv(
   connection: mongoose.Connection,
   tenantId: string,
   ownerId?: string,
+  temp?: string,
   batchSize = 5000,
 ): Promise<void> {
   const inputStream = createInputStream(input);
@@ -149,7 +151,7 @@ export async function processCsv(
         tickets.push(row);
       })
       .on('end', () => {
-        handleParsedCsv(firstRow, tickets, connection, tenantId, ownerId, batchSize)
+        handleParsedCsv(firstRow, tickets, connection, tenantId, ownerId, batchSize, temp)
           .then(resolve)
           .catch(reject);
       })
