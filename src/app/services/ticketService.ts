@@ -7,6 +7,7 @@ import * as User from '../model/user';
 import * as Sprint from '../model/sprint';
 import * as Activity from '../model/activity';
 import * as Project from '../model/project';
+import * as Status from '../model/status';
 import * as Epic from '../model/epic';
 import { ActivityType, IChange, ITicket, ITicketDocument } from '../types';
 import mongoose, { Mongoose, Types } from 'mongoose';
@@ -315,4 +316,20 @@ export const getTicketsByEpic = async (req: Request) => {
 
 export const getShowTicket = (req: Request) => {
   return findTickets(req.dbConnection, req.tenantsConnection, { _id: req.params.id });
+};
+
+export const getStatusSummaryBySprintId = async (
+  projectId: string,
+  sprintId: string,
+  dbConnection: Mongoose,
+) => {
+  const tickets = await Ticket.getModel(dbConnection)
+    .find({
+      project: projectId,
+      sprint: sprintId,
+    })
+    .populate({ path: 'status', model: Status.getModel(dbConnection) })
+    .exec();
+
+  return tickets;
 };

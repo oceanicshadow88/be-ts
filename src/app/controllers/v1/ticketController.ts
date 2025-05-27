@@ -8,6 +8,7 @@ import {
   getTicketsByEpic,
   toggleActive,
   updateTicket,
+  getStatusSummaryBySprintId,
 } from '../../services/ticketService';
 import { asyncHandler } from '../../utils/helper';
 
@@ -19,6 +20,15 @@ declare module 'express-serve-static-core' {
     userId?: string;
   }
 }
+
+export const getSprintStatusSummary = asyncHandler(async (req: Request, res: Response) => {
+  const { projectId, sprintId } = req.params;
+  const statusSummary = await getStatusSummaryBySprintId(projectId, sprintId, req.dbConnection);
+  if (!statusSummary) {
+    return res.status(httpStatus.NOT_FOUND).json({ error: 'Status summary not found.' });
+  }
+  return res.json(statusSummary);
+});
 
 export const show = asyncHandler(async (req: Request, res: Response) => {
   const errors = validationResult(req);
