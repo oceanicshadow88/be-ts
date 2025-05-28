@@ -2,6 +2,11 @@ import { body, param } from 'express-validator';
 
 const show = [param('id').notEmpty()];
 
+const validateProjectAndSprintId = [
+  param('projectId').notEmpty().withMessage('projectId is required').isString(),
+  param('sprintId').notEmpty().withMessage('sprintId is required').isString(),
+];
+
 const store = [body(['title', 'type']).notEmpty()];
 
 const update = [
@@ -12,4 +17,4 @@ const update = [
 
 const remove = [param('id').notEmpty().isString()];
 
-export { show, store, update, remove };
+export { show, store, update, remove, validateProjectAndSprintId };

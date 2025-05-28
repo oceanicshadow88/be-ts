@@ -2,10 +2,6 @@ const { param, check } = require('express-validator');
 
 const show = [param('id').notEmpty().isString()];
 
-const validateProjectAndSprintId = [
-  param('projectId').notEmpty().withMessage('projectId is required').isString(),
-  param('sprintId').notEmpty().withMessage('sprintId is required').isString(),
-];
 const store = [
   check('name', 'Name Empty').notEmpty(),
   check('key', 'Key Empty').notEmpty(),
@@ -15,4 +11,4 @@ const store = [
 const update = [param('id').notEmpty().isString()];
 const remove = [param('id').notEmpty().isString()];
 
-export { show, store, update, remove, validateProjectAndSprintId };
+export { show, store, update, remove };

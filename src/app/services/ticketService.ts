@@ -323,13 +323,35 @@ export const getStatusSummaryBySprintId = async (
   sprintId: string,
   dbConnection: Mongoose,
 ) => {
-  const tickets = await Ticket.getModel(dbConnection)
-    .find({
-      project: projectId,
-      sprint: sprintId,
-    })
-    .populate({ path: 'status', model: Status.getModel(dbConnection) })
-    .exec();
-
-  return tickets;
+  const groupedStatusSummary = await Ticket.getModel(dbConnection).aggregate([
+    {
+      $match: {
+        project: new mongoose.Types.ObjectId(projectId),
+        sprint: new mongoose.Types.ObjectId(sprintId),
+      },
+    },
+    {
+      $group: {
+        _id: '$status',
+        total: { $sum: 1 },
+      },
+    },
+    {
+      $lookup: {
+        from: 'statuses',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'statusInfo',
+      },
+    },
+    { $unwind: '$statusInfo' },
+    {
+      $project: {
+        _id: 0,
+        name: '$statusInfo.slug',
+        total: 1,
+      },
+    },
+  ]);
+  return groupedStatusSummary;
 };
