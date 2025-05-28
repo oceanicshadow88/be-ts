@@ -22,6 +22,10 @@ declare module 'express-serve-static-core' {
 }
 
 export const getSprintStatusSummary = asyncHandler(async (req: Request, res: Response) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.sendStatus(httpStatus.UNPROCESSABLE_ENTITY).json({ errors: errors });
+  }
   const { projectId, sprintId } = req.params;
   const statusSummary = await getStatusSummaryBySprintId(projectId, sprintId, req.dbConnection);
   if (!statusSummary) {

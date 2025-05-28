@@ -7,7 +7,6 @@ import * as User from '../model/user';
 import * as Sprint from '../model/sprint';
 import * as Activity from '../model/activity';
 import * as Project from '../model/project';
-import * as Status from '../model/status';
 import * as Epic from '../model/epic';
 import { ActivityType, IChange, ITicket, ITicketDocument } from '../types';
 import mongoose, { Mongoose, Types } from 'mongoose';
