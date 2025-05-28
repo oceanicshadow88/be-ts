@@ -5,6 +5,7 @@ import app from '../setup/app';
 import db from '../setup/db';
 import TicketBuilder from './builders/ticketBuilder';
 import ProjectBuilder from './builders/projectBuilder';
+import EpicBuilder from './builders/epicBuilder';
 import * as Ticket from '../../src/app/model/ticket';
 
 describe('Get Ticket Test', () => {
@@ -17,6 +18,17 @@ describe('Get Ticket Test', () => {
 
     expect(res.body.id).toEqual(ticket._id.toString());
   });
+
+  it('should get a ticket by epic id', async () => {
+    const epic = await new EpicBuilder().save();
+    const ticket = await new TicketBuilder().withEpic(epic.id.toString()).save();
+    const res = await request(app.application)
+      .get(`/api/v2/tickets/epic/${ticket.epic.toString()}`)
+      .expect(httpStatus.OK);
+      
+    expect(res.body[0].id).toEqual(ticket._id.toString());
+  });
+
 });
 
 describe('Post Ticket Test', () => {

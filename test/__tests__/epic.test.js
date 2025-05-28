@@ -1,5 +1,6 @@
 import request from 'supertest';
 import EpicBuilder from './builders/epicBuilder';
+import TicketBuilder from './builders/ticketBuilder';
 import app from '../setup/app';
 
 describe('Epic Test', () => {
@@ -45,10 +46,13 @@ describe('Epic Test', () => {
 
   it('delete epic, should delete epic', async () => {
     const epic = await new EpicBuilder().save();
-    // Todo createTicket (epic: epic._id)
+    const ticket = await new TicketBuilder().withEpic(epic._id.toString()).save();
     await request(app.application).delete(`/api/v2/epics/${epic._id.toString()}`).expect(200);
-    // ticket.epic expect null
-    //  await request(app.application).get(`/api/v2/ticket/${ticket._id.toString()}`).expect(200);
+  
+    const res = await request(app.application).get(`/api/v2/tickets/${ticket._id.toString()}`).expect(200);
+    expect(res.body).not.toBeNull();
+    expect(res.body).toHaveProperty('epic');
+    expect(res.body.epic).toBeNull();
   });
 
   it('create epic, should return 422 when missing title', async () => {
