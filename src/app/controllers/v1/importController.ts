@@ -4,7 +4,6 @@ import * as importService from '../../services/importService';
 
 export const importProjectByCsv = async (req: Request, res: Response): Promise<void> => {
   const input = req.file?.buffer || req.file?.path;
-
   if (!input) {
     res.status(httpStatus.BAD_REQUEST).json({ error: 'No file uploaded or invalid file path' });
     return;

@@ -390,11 +390,6 @@ router.delete(
 //import
 router.post(
   '/import-project',
-  multerMiddleware.memoryUpload.single('file'),
-  importController.importProjectByCsv,
-);
-router.post(
-  '/import-project/large',
   multerMiddleware.diskUpload.single('file'),
   importController.importProjectByCsv,
 );

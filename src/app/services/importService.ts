@@ -81,16 +81,13 @@ async function handleParsedCsv(
   ownerId: string | undefined,
   batchSize: number,
 ) {
-  const session = await connection.startSession();
-  session.startTransaction();
-
   const ProjectModel = Project.getModel(connection);
   const TicketModel = Ticket.getModel(connection);
   const TypeModel = Type.getModel(connection);
 
   try {
     const projectObject = buildProjectObjectRequiredOnly(firstRow, tenantId, ownerId);
-    const project = await ProjectModel.create([projectObject], { session });
+    const project = await ProjectModel.create([projectObject]);
 
     let batch: any[] = [];
     let ticketInsertPromises: Promise<any>[] = [];
@@ -106,25 +103,22 @@ async function handleParsedCsv(
       batch.push(ticketObj);
 
       if (batch.length === batchSize) {
-        ticketInsertPromises.push(TicketModel.insertMany(batch, { session }));
+        ticketInsertPromises.push(TicketModel.insertMany(batch));
         batch = [];
       }
     }
 
     if (batch.length > 0) {
-      ticketInsertPromises.push(TicketModel.insertMany(batch, { session }));
+      ticketInsertPromises.push(TicketModel.insertMany(batch));
     }
 
     await Promise.all(ticketInsertPromises);
-    await session.commitTransaction();
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('CSV import failed', error);
-    await session.abortTransaction();
+ 
     throw error;
-  } finally {
-    await session.endSession();
-  }
+  } 
 }
 
 export async function processCsv(
@@ -134,8 +128,8 @@ export async function processCsv(
   ownerId?: string,
   batchSize = 5000,
 ): Promise<void> {
+  
   const inputStream = createInputStream(input);
-
   let firstRow: any = null;
   const tickets: any[] = [];
 
