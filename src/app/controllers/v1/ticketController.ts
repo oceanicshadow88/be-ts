@@ -21,7 +21,7 @@ declare module 'express-serve-static-core' {
   }
 }
 
-export const getSprintStatusSummary = asyncHandler(async (req: Request, res: Response) => {
+export const getSprintStatusSummary = async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.sendStatus(httpStatus.UNPROCESSABLE_ENTITY).json({ errors: errors });
@@ -32,7 +32,7 @@ export const getSprintStatusSummary = asyncHandler(async (req: Request, res: Res
     return res.status(httpStatus.NOT_FOUND).json({ error: 'Status summary not found.' });
   }
   return res.json(statusSummary);
-});
+};
 
 export const show = asyncHandler(async (req: Request, res: Response) => {
   const errors = validationResult(req);
