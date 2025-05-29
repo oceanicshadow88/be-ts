@@ -17,7 +17,7 @@ describe('Epic Test', () => {
   it('get epic by id, should get epics', async () => {
     const epic = await new EpicBuilder().save();
     const res = await request(app.application)
-      .get(`/api/v2/epics/${epic.id.toString()}`) 
+      .get(`/api/v2/epics/${epic.id}`) 
       .expect(200);
     expect(res._body.id).toEqual(epic.id);
     expect(res._body.title).toEqual(epic.title);
@@ -38,7 +38,7 @@ describe('Epic Test', () => {
     const epic = await new EpicBuilder().save();
     expect(epic.title).toEqual('Epic Title');
     const res = await request(app.application)
-      .put(`/api/v2/epics/${epic._id.toString()}`) 
+      .put(`/api/v2/epics/${epic.id}`) 
       .send({ title: updatedName }); 
     expect(res.body.id).toEqual(epic.id);
     expect(res.body.title).toEqual(updatedName);
@@ -46,10 +46,10 @@ describe('Epic Test', () => {
 
   it('delete epic, should delete epic', async () => {
     const epic = await new EpicBuilder().save();
-    const ticket = await new TicketBuilder().withEpic(epic._id.toString()).save();
-    await request(app.application).delete(`/api/v2/epics/${epic._id.toString()}`).expect(200);
+    const ticket = await new TicketBuilder().withEpic(epic.id).save();
+    await request(app.application).delete(`/api/v2/epics/${epic.id}`).expect(200);
   
-    const res = await request(app.application).get(`/api/v2/tickets/${ticket._id.toString()}`).expect(200);
+    const res = await request(app.application).get(`/api/v2/tickets/${ticket.id}`).expect(200);
     expect(res.body).not.toBeNull();
     expect(res.body).toHaveProperty('epic');
     expect(res.body.epic).toBeNull();
