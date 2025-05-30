@@ -55,8 +55,8 @@ function createInputStream(input: Buffer | string): stream.Readable {
 
 function buildProjectObjectRequiredOnly(ticket: any, tenantId: string, ownerId?: string) {
   return {
-    name: ticket['Project name'] || '',
-    key: ticket['Project key'] || '',
+    name: ticket['Project name'] ?? '',
+    key: ticket['Project key'] ?? '',
     projectLead: new mongoose.Types.ObjectId(ownerId),
     owner: new mongoose.Types.ObjectId(ownerId),
     tenant: tenantId,
@@ -64,12 +64,12 @@ function buildProjectObjectRequiredOnly(ticket: any, tenantId: string, ownerId?:
 }
 
 function buildTicketObjectRequiredOnly(ticket: any, typeId: string, projectId: string) {
-  const description = convertPlainTextToTipTapNodes(ticket.Description || '');
+  const description = convertPlainTextToTipTapNodes(ticket.Description ?? '');
   return {
-    title: ticket.Summary || '',
+    title: ticket.Summary ?? '',
     project: new mongoose.Types.ObjectId(projectId),
     type: new mongoose.Types.ObjectId(typeId),
-    description: description || '',
+    description: description ?? '',
   };
 }
 

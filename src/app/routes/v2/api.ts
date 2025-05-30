@@ -391,7 +391,7 @@ router.delete(
 router.post(
   '/import-project',
   multerMiddleware.diskUpload.single('file'),
-  importController.importProjectByCsv,
+  importController.importProjectByMicroService,
 );
 //export
 router.get('/export-project/fields', exportController.exportTicketFields);
