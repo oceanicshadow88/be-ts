@@ -59,8 +59,8 @@ const sprintSchema = new Schema<ISprintDocument>(
   { timestamps: true },
 );
 
-sprintSchema.statics.findLatestSprint = async function (projectId: string) {
-  const result = await this.findOne({ project: projectId, currentSprint: true });
+sprintSchema.statics.findLatestSprints = async function (projectId: string) {
+  const result = await this.find({ project: projectId, currentSprint: true });
   return result;
 };
 

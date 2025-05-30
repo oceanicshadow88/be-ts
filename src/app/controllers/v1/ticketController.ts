@@ -8,7 +8,7 @@ import {
   getTicketsByEpic,
   toggleActive,
   updateTicket,
-  getStatusSummaryBySprintId,
+  getStatusSummaryByProjectId,
 } from '../../services/ticketService';
 import { asyncHandler } from '../../utils/helper';
 
@@ -28,7 +28,7 @@ export const getSprintStatusSummary = async (req: Request, res: Response) => {
   }
 
   const { projectId } = req.params;
-  const statusSummary = await getStatusSummaryBySprintId(projectId, req.dbConnection);
+  const statusSummary = await getStatusSummaryByProjectId(projectId, req.dbConnection);
   if (!statusSummary) {
     return res.status(httpStatus.NOT_FOUND).json({ error: 'Status summary not found.' });
   }

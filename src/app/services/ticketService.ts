@@ -317,15 +317,19 @@ export const getShowTicket = (req: Request) => {
   return findTickets(req.dbConnection, req.tenantsConnection, { _id: req.params.id });
 };
 
-export const getStatusSummaryBySprintId = async (projectId: string, dbConnection: Mongoose) => {
+export const getStatusSummaryByProjectId = async (projectId: string, dbConnection: Mongoose) => {
   const SprintModel = await Sprint.getModel(dbConnection);
-  const currentSprint = await SprintModel.findLatestSprint(projectId);
+  //TODO: 这里需要修改 考虑多个spring怎么办
+  const currentSprints = await SprintModel.findLatestSprints(projectId);
+  const latestSprints = currentSprints[0];
+
+  if (!currentSprints || currentSprints.length === 0) return [];
 
   const groupedStatusSummary = await Ticket.getModel(dbConnection).aggregate([
     {
       $match: {
         project: new mongoose.Types.ObjectId(projectId),
-        sprint: new mongoose.Types.ObjectId(currentSprint.id),
+        sprint: new mongoose.Types.ObjectId(latestSprints.id),
       },
     },
     {
