@@ -301,9 +301,9 @@ export const getTicketsByProject = async (req: Request) => {
 };
 
 export const getTicketsByEpic = async (req: Request) => {
-  const { epicId } = req.params;
+  const { id } = req.params;
   const tickets = await Ticket.getModel(req.dbConnection)
-    .find({ epic: epicId })
+    .find({ epic: id })
     .populate({
       path: 'epic',
       model: Epic.getModel(req.dbConnection),

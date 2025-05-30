@@ -5,6 +5,7 @@ import app from '../setup/app';
 import db from '../setup/db';
 import TicketBuilder from './builders/ticketBuilder';
 import ProjectBuilder from './builders/projectBuilder';
+import EpicBuilder from './builders/epicBuilder';
 import * as Ticket from '../../src/app/model/ticket';
 
 describe('Get Ticket Test', () => {
@@ -12,11 +13,22 @@ describe('Get Ticket Test', () => {
     const ticket = await new TicketBuilder().save();
 
     const res = await request(app.application)
-      .get(`/api/v2/tickets/${ticket._id}`)
+      .get(`/api/v2/tickets/${ticket.id}`)
       .expect(httpStatus.OK);
 
-    expect(res.body.id).toEqual(ticket._id.toString());
+    expect(res.body.id).toEqual(ticket.id);
   });
+
+  it('should get a ticket by epic id', async () => {
+    const epic = await new EpicBuilder().save();
+    const ticket = await new TicketBuilder().withEpic(epic.id).save();
+    const res = await request(app.application)
+      .get(`/api/v2/tickets/epic/${ticket.epic.toString()}`)
+      .expect(httpStatus.OK);
+      
+    expect(res.body[0].id).toEqual(ticket.id);
+  });
+
 });
 
 describe('Post Ticket Test', () => {
@@ -42,7 +54,7 @@ describe('Post Ticket Test', () => {
     const project = await new ProjectBuilder().save();
     const correctTicket = {
       title: 'create ticket test',
-      projectId: project._id,
+      projectId: project.id,
     };
 
     const wrongTicket = {
@@ -66,11 +78,11 @@ describe('Update Ticket Test', () => {
     };
 
     const res = await request(app.application)
-      .put(`/api/v2/tickets/${ticket._id}`)
+      .put(`/api/v2/tickets/${ticket.id}`)
       .send(updatedField)
       .expect(httpStatus.OK);
 
-    expect(res.body).toHaveProperty('id', ticket._id.toString());
+    expect(res.body).toHaveProperty('id', ticket.id);
     expect(res.body).toHaveProperty('title', updatedField.title);
     expect(res.body).toHaveProperty('description', updatedField.description);
   });
@@ -89,10 +101,10 @@ describe('Delete ticket test', () => {
   it('should delete ticket by given id', async () => {
     const ticket = await new TicketBuilder().save();
     await request(app.application)
-      .delete(`/api/v2/tickets/${ticket._id}`)
+      .delete(`/api/v2/tickets/${ticket.id}`)
       .expect(httpStatus.NO_CONTENT);
 
-    const checkDeleteTicket = await Ticket.getModel(db.dbConnection).findById(ticket._id);
+    const checkDeleteTicket = await Ticket.getModel(db.dbConnection).findById(ticket.id);
     expect(checkDeleteTicket).toBeFalsy();
   });
 

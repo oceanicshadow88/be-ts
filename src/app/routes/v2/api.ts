@@ -145,8 +145,8 @@ router.get(
 );
 
 router.get(
-  '/tickets/epic/:epicId',
-  projectValidation.show,
+  '/tickets/epic/:id',
+  epicValidator.show,
   authenticationTokenMiddleware,
   ticketController.ticketsByEpic,
 );
