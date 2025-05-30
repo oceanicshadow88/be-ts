@@ -60,7 +60,7 @@ const sprintSchema = new Schema<ISprintDocument>(
 );
 
 sprintSchema.statics.findLatestSprint = async function (projectId: string) {
-  const result = await this.find({ projectId, currentSprint: true });
+  const result = await this.findOne({ project: projectId, currentSprint: true });
   return result;
 };
 

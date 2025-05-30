@@ -145,8 +145,8 @@ router.get(
 );
 
 router.get(
-  '/tickets/project/:projectId/statusSummary/:sprintId',
-  ticketValidation.validateProjectAndSprintId,
+  '/tickets/project/:projectId/statusSummary',
+  ticketValidation.validateProjectId,
   authenticationTokenMiddleware,
   ticketController.getSprintStatusSummary,
 );

@@ -317,16 +317,15 @@ export const getShowTicket = (req: Request) => {
   return findTickets(req.dbConnection, req.tenantsConnection, { _id: req.params.id });
 };
 
-export const getStatusSummaryBySprintId = async (
-  projectId: string,
-  sprintId: string,
-  dbConnection: Mongoose,
-) => {
+export const getStatusSummaryBySprintId = async (projectId: string, dbConnection: Mongoose) => {
+  const SprintModel = await Sprint.getModel(dbConnection);
+  const currentSprint = await SprintModel.findLatestSprint(projectId);
+
   const groupedStatusSummary = await Ticket.getModel(dbConnection).aggregate([
     {
       $match: {
         project: new mongoose.Types.ObjectId(projectId),
-        sprint: new mongoose.Types.ObjectId(sprintId),
+        sprint: new mongoose.Types.ObjectId(currentSprint.id),
       },
     },
     {

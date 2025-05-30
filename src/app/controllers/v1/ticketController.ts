@@ -26,8 +26,9 @@ export const getSprintStatusSummary = async (req: Request, res: Response) => {
   if (!errors.isEmpty()) {
     return res.sendStatus(httpStatus.UNPROCESSABLE_ENTITY).json({ errors: errors });
   }
-  const { projectId, sprintId } = req.params;
-  const statusSummary = await getStatusSummaryBySprintId(projectId, sprintId, req.dbConnection);
+
+  const { projectId } = req.params;
+  const statusSummary = await getStatusSummaryBySprintId(projectId, req.dbConnection);
   if (!statusSummary) {
     return res.status(httpStatus.NOT_FOUND).json({ error: 'Status summary not found.' });
   }
