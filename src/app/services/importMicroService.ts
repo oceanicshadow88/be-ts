@@ -1,6 +1,7 @@
 import amqp from 'amqplib';
+import { config } from '../config/app';
 
-const isLocal = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'local';
+const isLocal = config.environment  === 'development' || config.environment === 'local';
 const RABBITMQ_URL = isLocal
   ? 'amqp://localhost'
   : process.env.RABBITMQ_URL ?? 'amqp://localhost';
