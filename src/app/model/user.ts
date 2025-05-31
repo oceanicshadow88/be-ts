@@ -2,8 +2,7 @@ import { CallbackWithoutResultAndOptionalError, Schema, Types } from 'mongoose';
 import jwt from 'jsonwebtoken';
 import config from '../config/app';
 import bcrypt from 'bcrypt';
-import { randomStringGenerator } from '../utils/randomStringGenerator';
-import { logger } from '../../loaders/logger';
+import { winstonLogger } from '../../loaders/logger';
 
 export interface IProjectRole {
   project: Types.ObjectId;
@@ -130,7 +129,7 @@ userSchema.statics.findByCredentials = async function (email: string, password: 
     return null;
   }
   if (user.active === false) {
-    logger.info('User has not active account:' + email);
+    winstonLogger.info('User has not active account:' + email);
     return undefined;
   }
 
@@ -176,29 +175,13 @@ userSchema.methods.toJSON = function () {
 
 userSchema.methods.generateAuthToken = async function () {
   const user = this;
-  const token = jwt.sign({ id: user._id.toString() }, config.accessSecret, {
+  const token = jwt.sign({ id: user.id }, config.accessSecret, {
     expiresIn: '48h',
   });
-  if (user.refreshToken == null || user.refreshToken === undefined || user.refreshToken === '') {
-    const randomString = randomStringGenerator(10);
-    const refreshToken = jwt.sign(
-      { id: user._id, refreshToken: randomString },
-      config.accessSecret,
-      {
-        expiresIn: '360h',
-      },
-    );
-    user.refreshToken = randomString;
-    await user.save();
-    return { token, refreshToken: refreshToken };
-  }
-  const refreshToken = jwt.sign(
-    { id: user._id, refreshToken: user.refreshToken },
-    config.accessSecret,
-    {
-      expiresIn: '360h',
-    },
-  );
+  const refreshToken = jwt.sign({ id: user.id }, config.accessSecret, { expiresIn: '360h' });
+  user.refreshToken = refreshToken;
+  await user.save();
+
   return { token, refreshToken };
 };
 
