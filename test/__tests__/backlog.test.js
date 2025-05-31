@@ -3,9 +3,8 @@ import app from '../setup/app';
 import TicketBuilder from './builders/ticketBuilder';
 import ProjectBuilder from './builders/projectBuilder';
 import TypeBuilder from './builders/typeBuilder';
-import UserBuilder from './builders/userBuilder';
+import db from '../setup/db';
 import EpicBuilder from './builders/epicBuilder';
-import LabelBuilder from './builders/labelBuilder';
 
 describe('Backlog Page API Tests', () => {
 
@@ -29,7 +28,7 @@ describe('Backlog Page API Tests', () => {
       const project = await new ProjectBuilder().save();
 
       const res = await request(app.application)
-        .get(`/api/v2/projects/${project._id.toString()}/backlogs`)
+        .get(`/api/v2/projects/${project.id}/backlogs`)
         .expect(200);
 
       expect(Array.isArray(res.body)).toBe(true);
@@ -58,7 +57,7 @@ describe('Backlog Page API Tests', () => {
     it('should return 200 and empty array if no tickets match search', async () => {
       const project = await new ProjectBuilder().save();
       const res = await request(app.application)
-        .get(`/api/v2/projects/${project._id.toString()}/backlogs`)
+        .get(`/api/v2/projects/${project.id}/backlogs`)
         .query({ title: 'NonexistentTitle' })
         .expect(200);
 
@@ -67,28 +66,27 @@ describe('Backlog Page API Tests', () => {
     });
 
     it('should return 200 and matching tickets when searched by assignee', async () => {
-      const user = await new UserBuilder().save();
       const ticket = await new TicketBuilder()
-        .withAssign(user)
+        .withAssign(db.defaultUser)
         .save();
       const res = await request(app.application)
         .get(`/api/v2/projects/${ticket.project}/backlogs`)
-        .query({ assign: user._id.toString() })
+        .query({ assign: db.defaultUser.id })
         .expect(200);
 
       expect(Array.isArray(res.body)).toBe(true);
       expect(res.body.length).toEqual(1);
       const returnedTicket = res.body.find((t) => t.id === ticket.id);
       expect(returnedTicket).toBeDefined();
-      expect(returnedTicket.assign).toEqual(user._id.toString());
+      expect(returnedTicket.assign.id).toEqual(db.defaultUser.id);
     });
 
     it('should return 200 and empty array if no tickets match assignee', async () => {
       const project = await new ProjectBuilder().save();
-      const user = await new UserBuilder().save();
+      
       const res = await request(app.application)
-        .get(`/api/v2/projects/${project._id.toString()}/backlogs`)
-        .query({ assign: user._id.toString() })
+        .get(`/api/v2/projects/${project.id}/backlogs`)
+        .query({ assign: db.defaultUser.id })
         .expect(200);
 
       expect(Array.isArray(res.body)).toBe(true);
@@ -103,22 +101,22 @@ describe('Backlog Page API Tests', () => {
 
       const res = await request(app.application)
         .get(`/api/v2/projects/${ticket.project}/backlogs`)
-        .query({ ticketTypes: types[0]._id.toString() })
+        .query({ ticketTypes: types[0].id })
         .expect(200);
         
       expect(Array.isArray(res.body)).toBe(true);
       expect(res.body.length).toEqual(1);
       const returnedTicket = res.body.find((t) => t.id === ticket.id);
       expect(returnedTicket).toBeDefined();
-      expect(returnedTicket.type).toEqual(types[0]._id.toString());
+      expect(returnedTicket.type.id).toEqual(types[0].id);
     });
 
     it('should return 200 and empty array if no tickets match type', async () => {
       const project = await new ProjectBuilder().save();
       const types = await TypeBuilder.createDefaultTypes();
       const res = await request(app.application)
-        .get(`/api/v2/projects/${project._id.toString()}/backlogs`)
-        .query({ ticketTypes: types[0]._id.toString() })
+        .get(`/api/v2/projects/${project.id}/backlogs`)
+        .query({ ticketTypes: types[0].id })
         .expect(200);
 
       expect(Array.isArray(res.body)).toBe(true);
@@ -132,20 +130,20 @@ describe('Backlog Page API Tests', () => {
         .save();
 
       const ticket = await new TicketBuilder()
-        .withEpic(epic._id.toString())
+        .withEpic(epic.id)
         .withProject(project)
         .save();
 
       const res = await request(app.application)
-        .get(`/api/v2/projects/${project._id.toString()}/backlogs`)
-        .query({ ticketEpics: epic._id.toString() })
+        .get(`/api/v2/projects/${project.id}/backlogs`)
+        .query({ ticketEpics: epic.id })
         .expect(200);
 
       expect(Array.isArray(res.body)).toBe(true);
       expect(res.body.length).toEqual(1);
       const returnedTicket = res.body.find((t) => t.id === ticket.id);
       expect(returnedTicket).toBeDefined();
-      expect(returnedTicket.epic).toEqual(epic._id.toString());
+      expect(returnedTicket.epic).toEqual(epic.id);
     });
 
     it('should return 200 and empty array if no tickets match epic', async () => {
@@ -155,8 +153,8 @@ describe('Backlog Page API Tests', () => {
         .save();
 
       const res = await request(app.application)
-        .get(`/api/v2/projects/${project._id.toString()}/backlogs`)
-        .query({ ticketEpics: epic._id.toString() })
+        .get(`/api/v2/projects/${project.id}/backlogs`)
+        .query({ ticketEpics: epic.id })
         .expect(200);
 
       expect(Array.isArray(res.body)).toBe(true);
