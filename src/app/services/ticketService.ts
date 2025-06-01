@@ -319,7 +319,6 @@ export const getShowTicket = (req: Request) => {
 
 export const getStatusSummaryByProjectId = async (projectId: string, dbConnection: Mongoose) => {
   const SprintModel = await Sprint.getModel(dbConnection);
-  //TODO: 这里需要修改 考虑多个spring怎么办
   const currentSprints = await SprintModel.findLatestSprints(projectId);
   const latestSprints = currentSprints[0];
 
