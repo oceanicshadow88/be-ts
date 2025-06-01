@@ -2,7 +2,7 @@ import { body, param } from 'express-validator';
 
 const show = [param('id').notEmpty()];
 
-const validateProjectId = [
+const validateStatusSummary = [
   param('projectId').notEmpty().withMessage('projectId is required').isString(),
 ];
 
@@ -16,4 +16,4 @@ const update = [
 
 const remove = [param('id').notEmpty().isString()];
 
-export { show, store, update, remove, validateProjectId };
+export { show, store, update, remove, validateStatusSummary };
