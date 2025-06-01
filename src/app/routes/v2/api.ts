@@ -152,8 +152,8 @@ router.get(
 );
 
 router.get(
-  '/tickets/epic/:epicId',
-  projectValidation.show,
+  '/tickets/epic/:id',
+  epicValidator.show,
   authenticationTokenMiddleware,
   ticketController.ticketsByEpic,
 );
@@ -327,7 +327,6 @@ router.delete('/labels/:id', labelValidation.remove, labelController.destroy);
 
 // backlogs
 router.get('/projects/:projectId/backlogs', backlogController.index);
-router.get('/projects/:projectId/backlogs/search', backlogController.searchBacklogTickets);
 
 // sprints
 router.get('/sprints', sprintController.show);
