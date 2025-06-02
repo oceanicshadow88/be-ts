@@ -19,4 +19,17 @@ function registerTicketEventHandler(io: Server, socket: Socket) {
   });
 }
 
-export { registerProjectRoomHandler, registerTicketEventHandler };
+// Update retro item to all users in the project room
+function registerRetroItemEventHandler(io: Server, socket: Socket) {
+  socket.on('retro_item_updated', (data) => {
+    const { projectId, retroItem } = data;
+    if (!projectId) return;
+    io.to(`project-${projectId}`).emit('retro_item_updated', retroItem);
+  });
+}
+
+export { 
+  registerProjectRoomHandler,
+  registerTicketEventHandler,
+  registerRetroItemEventHandler,
+};
