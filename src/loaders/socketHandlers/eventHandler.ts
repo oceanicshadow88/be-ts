@@ -2,7 +2,7 @@ import { Server, Socket } from 'socket.io';
 
 // Allocate users to the project room
 function registerProjectRoomHandler(io: Server, socket: Socket) {
-  socket.on('join_project', (projectId: string) => {
+  socket.on('join_project_room', (projectId: string) => {
     socket.join(`project-${projectId}`);
 
     // eslint-disable-next-line no-console
