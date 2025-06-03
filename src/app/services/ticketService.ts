@@ -360,6 +360,46 @@ export const getStatusSummaryByProjectId = async (projectId: string, dbConnectio
   return groupedStatusSummary;
 };
 
+export const getTypeSummaryByProjectId = async (projectId: string, dbConnection: Mongoose) => {
+  const SprintModel = await Sprint.getModel(dbConnection);
+  const currentSprints = await SprintModel.findLatestSprints(projectId);
+  const latestSprints = currentSprints[0];
+
+  if (!currentSprints || currentSprints.length === 0) return [];
+
+  const groupedStatusSummary = await Ticket.getModel(dbConnection).aggregate([
+    {
+      $match: {
+        project: new mongoose.Types.ObjectId(projectId),
+        sprint: new mongoose.Types.ObjectId(latestSprints.id),
+      },
+    },
+    {
+      $group: {
+        _id: '$type',
+        total: { $sum: 1 },
+      },
+    },
+    {
+      $lookup: {
+        from: 'types',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'type',
+      },
+    },
+    { $unwind: '$type' },
+    {
+      $project: {
+        _id: 0,
+        name: '$type.slug',
+        total: 1,
+      },
+    },
+  ]);
+  return groupedStatusSummary;
+};
+
 export const getStatusSummaryGroupedByEpic = async (projectId: string, dbConnection: Mongoose) => {
   const groupedStatusSummary = await Ticket.getModel(dbConnection).aggregate([
     {
