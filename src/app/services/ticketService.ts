@@ -320,14 +320,21 @@ export const getShowTicket = (req: Request) => {
   return findTickets(req.dbConnection, req.tenantsConnection, { _id: req.params.id });
 };
 
-export const getStatusSummaryByProjectId = async (projectId: string, dbConnection: Mongoose) => {
+export const getSummaryByProjectId = async (
+  projectId: string,
+  dbConnection: Mongoose,
+  summaryBy: 'type' | 'status',
+) => {
   const SprintModel = await Sprint.getModel(dbConnection);
   const currentSprints = await SprintModel.findLatestSprints(projectId);
   const latestSprints = currentSprints[0];
 
   if (!currentSprints || currentSprints.length === 0) return [];
 
-  const groupedStatusSummary = await Ticket.getModel(dbConnection).aggregate([
+  const field = summaryBy;
+  const collection = summaryBy === 'status' ? 'statuses' : 'types';
+
+  const groupedSummary = await Ticket.getModel(dbConnection).aggregate([
     {
       $match: {
         project: new mongoose.Types.ObjectId(projectId),
@@ -336,68 +343,28 @@ export const getStatusSummaryByProjectId = async (projectId: string, dbConnectio
     },
     {
       $group: {
-        _id: '$status',
+        _id: `$${field}`,
         total: { $sum: 1 },
       },
     },
     {
       $lookup: {
-        from: 'statuses',
+        from: collection,
         localField: '_id',
         foreignField: '_id',
-        as: 'statusInfo',
+        as: 'info',
       },
     },
-    { $unwind: '$statusInfo' },
+    { $unwind: '$info' },
     {
       $project: {
         _id: 0,
-        name: '$statusInfo.slug',
+        name: '$info.slug',
         total: 1,
       },
     },
   ]);
-  return groupedStatusSummary;
-};
-
-export const getTypeSummaryByProjectId = async (projectId: string, dbConnection: Mongoose) => {
-  const SprintModel = await Sprint.getModel(dbConnection);
-  const currentSprints = await SprintModel.findLatestSprints(projectId);
-  const latestSprints = currentSprints[0];
-
-  if (!currentSprints || currentSprints.length === 0) return [];
-
-  const groupedStatusSummary = await Ticket.getModel(dbConnection).aggregate([
-    {
-      $match: {
-        project: new mongoose.Types.ObjectId(projectId),
-        sprint: new mongoose.Types.ObjectId(latestSprints.id),
-      },
-    },
-    {
-      $group: {
-        _id: '$type',
-        total: { $sum: 1 },
-      },
-    },
-    {
-      $lookup: {
-        from: 'types',
-        localField: '_id',
-        foreignField: '_id',
-        as: 'type',
-      },
-    },
-    { $unwind: '$type' },
-    {
-      $project: {
-        _id: 0,
-        name: '$type.slug',
-        total: 1,
-      },
-    },
-  ]);
-  return groupedStatusSummary;
+  return groupedSummary;
 };
 
 export const getStatusSummaryGroupedByEpic = async (projectId: string, dbConnection: Mongoose) => {
