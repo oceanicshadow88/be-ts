@@ -59,8 +59,8 @@ export const findTickets = async (
         path: 'comments',
         model: commentModel,
       })
-      .populate({ 
-        path: 'project', 
+      .populate({
+        path: 'project',
         model: projectModel,
       })
       .sort({ createdAt: 1 });
@@ -358,4 +358,8 @@ export const getStatusSummaryByProjectId = async (projectId: string, dbConnectio
     },
   ]);
   return groupedStatusSummary;
+};
+
+export const getStatusSummaryGroupedByEpic = async (projectId: string, dbConnection: Mongoose) => {
+  return { message: 'success.' };
 };
