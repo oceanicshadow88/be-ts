@@ -154,7 +154,7 @@ router.get(
 router.get(
   '/tickets/project/:projectId/statusSummaryByEpic',
   ticketValidation.validateStatusSummary,
-  // authenticationTokenMiddleware,
+  authenticationTokenMiddleware,
   ticketController.getEpicsStatusSummary,
 );
 
