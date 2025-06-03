@@ -4,9 +4,6 @@ import { Server, Socket } from 'socket.io';
 function registerProjectRoomHandler(io: Server, socket: Socket) {
   socket.on('join_project_room', (projectId: string) => {
     socket.join(`project-${projectId}`);
-
-    // eslint-disable-next-line no-console
-    console.log(`👤 ${socket.id} joined room: project-${projectId}`);
   });
 }
 
