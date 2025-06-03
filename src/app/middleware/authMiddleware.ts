@@ -21,7 +21,6 @@ const authenticationTokenMiddleware = (req: Request, res: Response, next: NextFu
   }
 
   const [authType, token] = authorization.split(' ');
-
   if (!token) return res.sendStatus(status.UNAUTHORIZED);
   if (authType !== 'Bearer') return res.sendStatus(status.FORBIDDEN);
 
