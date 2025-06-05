@@ -3,6 +3,7 @@ import multer from 'multer';
 import multerS3 from 'multer-s3';
 import path from 'path';
 import awsConfig from '../config/aws';
+import fs from 'fs';
 
 AWS.config.update({
   region: awsConfig.awsRegion,
@@ -29,7 +30,11 @@ const memoryStorage = multer.memoryStorage();
 
 const diskStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    const uploadDir = 'uploads/';
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
     cb(null, Date.now().toString() + path.extname(file.originalname));
@@ -50,6 +55,7 @@ export const memoryUpload = multer({
 export const diskUpload = multer({
   storage: diskStorage,
   fileFilter: (req, file, cb) => {
+    
     if (path.extname(file.originalname).toLowerCase() !== '.csv') {
       return cb(new Error('Only CSV files are allowed'));
     }
