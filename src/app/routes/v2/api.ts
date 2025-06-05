@@ -145,6 +145,13 @@ router.get(
 );
 
 router.get(
+  '/tickets/project/:projectId/statusSummary',
+  ticketValidation.validateStatusSummary,
+  authenticationTokenMiddleware,
+  ticketController.getSprintStatusSummary,
+);
+
+router.get(
   '/tickets/epic/:id',
   epicValidator.show,
   authenticationTokenMiddleware,
@@ -152,12 +159,14 @@ router.get(
 );
 
 router.get('/tickets/:id', ticketValidation.show, ticketController.show);
+
 router.post(
   '/tickets',
   ticketValidation.store,
   authenticationTokenMiddleware,
   ticketController.store,
 );
+
 router.put(
   '/tickets/:id',
   ticketValidation.update,
