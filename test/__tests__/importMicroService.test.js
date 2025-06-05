@@ -64,7 +64,6 @@ describe('ImportMicroService', () => {
     await channel.consume(queue, (msg) => {
       if (msg) {
         const content = JSON.parse(msg.content.toString());
-        console.log('content', content);
         receivedMessages.push(content);
         channel.ack(msg);
       }
@@ -75,7 +74,7 @@ describe('ImportMicroService', () => {
     const tenantId = 'test-tenant';
     const ownerId = 'test-owner';
 
-    await sendCsvToMicroService(filePath, tenantId, ownerId, 'true');
+    await sendCsvToMicroService(filePath, tenantId, ownerId, TEST_EXCHANGE, TEST_ROUTING_KEY);
 
     // Verify that the exchange was asserted
     expect(mockChannel.assertExchange).toHaveBeenCalledWith(TEST_EXCHANGE, 'direct', {
