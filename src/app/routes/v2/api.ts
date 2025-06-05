@@ -148,7 +148,14 @@ router.get(
   '/tickets/project/:projectId/statusSummary',
   ticketValidation.validateStatusSummary,
   authenticationTokenMiddleware,
-  ticketController.getSprintStatusSummary,
+  ticketController.getCurrentSprintStatusSummary,
+);
+
+router.get(
+  '/tickets/project/:projectId/statusSummaryByEpic',
+  ticketValidation.validateStatusSummary,
+  authenticationTokenMiddleware,
+  ticketController.getEpicsStatusSummary,
 );
 
 router.get(
