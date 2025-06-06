@@ -59,8 +59,8 @@ export const findTickets = async (
         path: 'comments',
         model: commentModel,
       })
-      .populate({ 
-        path: 'project', 
+      .populate({
+        path: 'project',
         model: projectModel,
       })
       .sort({ createdAt: 1 });
@@ -354,6 +354,88 @@ export const getStatusSummaryByProjectId = async (projectId: string, dbConnectio
         _id: 0,
         name: '$statusInfo.slug',
         total: 1,
+      },
+    },
+  ]);
+  return groupedStatusSummary;
+};
+
+export const getStatusSummaryGroupedByEpic = async (projectId: string, dbConnection: Mongoose) => {
+  const groupedStatusSummary = await Ticket.getModel(dbConnection).aggregate([
+    {
+      $match: {
+        project: new mongoose.Types.ObjectId(projectId),
+        epic: { $ne: null },
+      },
+    },
+    {
+      $lookup: {
+        from: 'statuses',
+        localField: 'status',
+        foreignField: '_id',
+        as: 'status',
+      },
+    },
+    {
+      $lookup: {
+        from: 'epics',
+        localField: 'epic',
+        foreignField: '_id',
+        as: 'epic',
+      },
+    },
+    {
+      $unwind: {
+        path: '$status',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $unwind: {
+        path: '$epic',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        epicId: '$epic._id',
+        epicTitle: '$epic.title',
+        status: { $ifNull: ['$status.slug', 'backlog'] },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          epicId: '$epicId',
+          epicTitle: '$epicTitle',
+          status: '$status',
+        },
+        count: { $sum: 1 },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          epicId: '$_id.epicId',
+          epicTitle: '$_id.epicTitle',
+        },
+        totalTicket: { $sum: '$count' },
+        statusSummary: {
+          $push: {
+            status: '$_id.status',
+            count: '$count',
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        epicId: '$_id.epicId',
+        epicTitle: '$_id.epicTitle',
+        totalTicket: 1,
+        statusSummary: 1,
       },
     },
   ]);
