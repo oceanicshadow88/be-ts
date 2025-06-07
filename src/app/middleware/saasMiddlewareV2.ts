@@ -83,8 +83,7 @@ const saas = asyncHandler(async (req: Request, res: Response, next: NextFunction
       console.error(message);
     }
 
-    winstonLogger.error(message ?? e);
-    return res.sendStatus(status.INTERNAL_SERVER_ERROR);
+    return next(e);
   }
   return next();
 });

@@ -59,7 +59,10 @@ export const findTickets = async (
         path: 'comments',
         model: commentModel,
       })
-      .populate({ path: 'project', model: projectModel })
+      .populate({
+        path: 'project',
+        model: projectModel,
+      })
       .sort({ createdAt: 1 });
 
     const activeTickets = tickets.filter((e: ITicket) => e.isActive === true);
@@ -301,9 +304,9 @@ export const getTicketsByProject = async (req: Request) => {
 };
 
 export const getTicketsByEpic = async (req: Request) => {
-  const { epicId } = req.params;
+  const { id } = req.params;
   const tickets = await Ticket.getModel(req.dbConnection)
-    .find({ epic: epicId })
+    .find({ epic: id })
     .populate({
       path: 'epic',
       model: Epic.getModel(req.dbConnection),
@@ -315,4 +318,126 @@ export const getTicketsByEpic = async (req: Request) => {
 
 export const getShowTicket = (req: Request) => {
   return findTickets(req.dbConnection, req.tenantsConnection, { _id: req.params.id });
+};
+
+export const getStatusSummaryByProjectId = async (projectId: string, dbConnection: Mongoose) => {
+  const SprintModel = await Sprint.getModel(dbConnection);
+  const currentSprints = await SprintModel.findLatestSprints(projectId);
+  const latestSprints = currentSprints[0];
+
+  if (!currentSprints || currentSprints.length === 0) return [];
+
+  const groupedStatusSummary = await Ticket.getModel(dbConnection).aggregate([
+    {
+      $match: {
+        project: new mongoose.Types.ObjectId(projectId),
+        sprint: new mongoose.Types.ObjectId(latestSprints.id),
+      },
+    },
+    {
+      $group: {
+        _id: '$status',
+        total: { $sum: 1 },
+      },
+    },
+    {
+      $lookup: {
+        from: 'statuses',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'statusInfo',
+      },
+    },
+    { $unwind: '$statusInfo' },
+    {
+      $project: {
+        _id: 0,
+        name: '$statusInfo.slug',
+        total: 1,
+      },
+    },
+  ]);
+  return groupedStatusSummary;
+};
+
+export const getStatusSummaryGroupedByEpic = async (projectId: string, dbConnection: Mongoose) => {
+  const groupedStatusSummary = await Ticket.getModel(dbConnection).aggregate([
+    {
+      $match: {
+        project: new mongoose.Types.ObjectId(projectId),
+        epic: { $ne: null },
+      },
+    },
+    {
+      $lookup: {
+        from: 'statuses',
+        localField: 'status',
+        foreignField: '_id',
+        as: 'status',
+      },
+    },
+    {
+      $lookup: {
+        from: 'epics',
+        localField: 'epic',
+        foreignField: '_id',
+        as: 'epic',
+      },
+    },
+    {
+      $unwind: {
+        path: '$status',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $unwind: {
+        path: '$epic',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        epicId: '$epic._id',
+        epicTitle: '$epic.title',
+        status: { $ifNull: ['$status.slug', 'backlog'] },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          epicId: '$epicId',
+          epicTitle: '$epicTitle',
+          status: '$status',
+        },
+        count: { $sum: 1 },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          epicId: '$_id.epicId',
+          epicTitle: '$_id.epicTitle',
+        },
+        totalTicket: { $sum: '$count' },
+        statusSummary: {
+          $push: {
+            status: '$_id.status',
+            count: '$count',
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        epicId: '$_id.epicId',
+        epicTitle: '$_id.epicTitle',
+        totalTicket: 1,
+        statusSummary: 1,
+      },
+    },
+  ]);
+  return groupedStatusSummary;
 };

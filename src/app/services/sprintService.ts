@@ -20,10 +20,10 @@ export const prepareSprintData = (data: ISprintData) => {
   };
 };
 
-export const findLatestSprint = (dbConnection: Mongoose, projectId: string) => {
+export const findLatestSprints = (dbConnection: Mongoose, projectId: string) => {
   const projectObjectId = new Types.ObjectId(projectId);
   const sprintModel = Sprint.getModel(dbConnection);
-  return sprintModel.findLatestSprint(projectObjectId);
+  return sprintModel.findLatestSprints(projectObjectId);
 };
 
 export const findSprints = async (

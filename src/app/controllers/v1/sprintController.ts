@@ -3,7 +3,7 @@ import { validationResult } from 'express-validator';
 import { replaceId } from '../../services/replaceService';
 import {
   deleteSprint,
-  findLatestSprint,
+  findLatestSprints,
   findSprints,
   findSprint,
   updateSprint,
@@ -18,7 +18,7 @@ export const currentSprint = asyncHandler(async (req: Request, res: Response) =>
     return res.sendStatus(status.UNPROCESSABLE_ENTITY);
   }
   const { projectId } = req.params;
-  const sprints = await findLatestSprint(req.dbConnection, projectId);
+  const sprints = await findLatestSprints(req.dbConnection, projectId);
   res.status(status.OK).send(sprints);
 });
 

@@ -145,19 +145,35 @@ router.get(
 );
 
 router.get(
-  '/tickets/epic/:epicId',
-  projectValidation.show,
+  '/tickets/project/:projectId/statusSummary',
+  ticketValidation.validateStatusSummary,
+  authenticationTokenMiddleware,
+  ticketController.getCurrentSprintStatusSummary,
+);
+
+router.get(
+  '/tickets/project/:projectId/statusSummaryByEpic',
+  ticketValidation.validateStatusSummary,
+  authenticationTokenMiddleware,
+  ticketController.getEpicsStatusSummary,
+);
+
+router.get(
+  '/tickets/epic/:id',
+  epicValidator.show,
   authenticationTokenMiddleware,
   ticketController.ticketsByEpic,
 );
 
 router.get('/tickets/:id', ticketValidation.show, ticketController.show);
+
 router.post(
   '/tickets',
   ticketValidation.store,
   authenticationTokenMiddleware,
   ticketController.store,
 );
+
 router.put(
   '/tickets/:id',
   ticketValidation.update,
@@ -318,7 +334,6 @@ router.delete('/labels/:id', labelValidation.remove, labelController.destroy);
 
 // backlogs
 router.get('/projects/:projectId/backlogs', backlogController.index);
-router.get('/projects/:projectId/backlogs/search', backlogController.searchBacklogTickets);
 
 // sprints
 router.get('/sprints', sprintController.show);
