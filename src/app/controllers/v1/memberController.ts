@@ -31,7 +31,7 @@ export const update = async (req: Request, res: Response) => {
 export const destroy = async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(status.UNPROCESSABLE_ENTITY).json({});
+    throw new Error('Validation failed');
   }
   const result = await removeRoleFromProject(req);
   res.send(replaceId(result));

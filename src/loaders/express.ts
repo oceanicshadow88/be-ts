@@ -2,12 +2,14 @@ import express, { NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
 import config from '../app/config/app';
 
+import testRoutes from '../routes/test.routes';
+
 const apiRouterV2 = require('../app/routes/v2/api');
 const cors = require('cors');
 const helmet = require('helmet');
-const { errorHandler } = require('./errorHandler');
-import status from 'http-status';
-import { globalAsyncErrorHandler } from './routes';
+
+import { autoWrapRouter, globalErrorHandler } from './routes';
+
 const compression = require('compression');
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -28,12 +30,11 @@ module.exports = () => {
     app.use(limiter);
   }
   app.use(helmet());
-  app.use(`${config.api.prefix}/v2`, globalAsyncErrorHandler(apiRouterV2));
-  app.use((err: Error, req: express.Request, res: express.Response, next: NextFunction) => {
-    errorHandler.handleError(err, res);
-    res.status(status.INTERNAL_SERVER_ERROR).send();
-    next();
-  });
+
+  app.use(`${config.api.prefix}/v2/logger`, autoWrapRouter(testRoutes));
+  app.use(`${config.api.prefix}/v2`, autoWrapRouter(apiRouterV2));
+
+  app.use(globalErrorHandler);
 
   return app;
 };
