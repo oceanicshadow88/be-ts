@@ -1,32 +1,14 @@
 import { Server, Socket } from 'socket.io';
 
 // Allocate users to the project room
-function registerProjectRoomHandler(io: Server, socket: Socket) {
-  socket.on('join_project_room', (projectId: string) => {
-    socket.join(`project-${projectId}`);
-  });
-}
-
-// Update ticket to all users in the project room
-function registerTicketEventHandler(io: Server, socket: Socket) {
-  socket.on('ticket_updated', (data) => {
-    const { projectId, ticket } = data;
-    if (!projectId) return;
-    io.to(`project-${projectId}`).emit('ticket_updated', ticket);
-  });
-}
-
-// Update retro item to all users in the project room
-function registerRetroItemEventHandler(io: Server, socket: Socket) {
-  socket.on('retro_item_updated', (data) => {
-    const { projectId, retroItem } = data;
-    if (!projectId) return;
-    io.to(`project-${projectId}`).emit('retro_item_updated', retroItem);
+function registerRetroSprintRoomHandler(io: Server, socket: Socket) {
+  socket.on('join_retro_sprint_room', (sprintId: string) => {
+    socket.join(`retro_sprint_room_${sprintId}`);
+    // eslint-disable-next-line no-console
+    console.log(`Socket ${socket.id} joined retro sprint room: ${sprintId}`);
   });
 }
 
 export { 
-  registerProjectRoomHandler,
-  registerTicketEventHandler,
-  registerRetroItemEventHandler,
+  registerRetroSprintRoomHandler,
 };
