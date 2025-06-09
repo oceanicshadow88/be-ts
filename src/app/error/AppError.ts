@@ -1,51 +1,48 @@
-import * as status from 'http-status';
-
+import status from 'http-status';
 
 export class AppError extends Error {
   public readonly statusCode: number;
+  public readonly context?: Record<string, any>;
 
-  constructor(message: string, statusCode: number) {
+  constructor(message: string, statusCode: number, context?: Record<string, any>) {
     super(message);
     this.statusCode = statusCode;
+    this.context = context;
     this.name = this.constructor.name;
     Error.captureStackTrace(this, this.constructor);
   }
 }
 
-
-export class NotFoundError extends AppError {
-  constructor(message: string = 'The requested resource was not found.') {
-    super(message, status.NOT_FOUND);
-  }
-}
-
-
 export class ValidationError extends AppError {
   public readonly details?: any;
 
-  constructor(message: string = 'Input validation failed.', details?: any) {
-    super(message, status.UNPROCESSABLE_ENTITY);
+  constructor(message = 'Input validation failed.', details?: any) {
+    const context = details ? { validationErrors: details } : undefined;
+    super(message, status.UNPROCESSABLE_ENTITY, context);
     this.details = details;
   }
 }
 
+export class NotFoundError extends AppError {
+  constructor(message = 'The requested resource was not found.', context?: Record<string, any>) {
+    super(message, status.NOT_FOUND, context);
+  }
+}
 
 export class UnauthorizedError extends AppError {
-  constructor(message: string = 'Authentication is required to access this resource.') {
-    super(message, status.UNAUTHORIZED);
+  constructor(message = 'Authentication is required to access this resource.', context?: Record<string, any>) {
+    super(message, status.UNAUTHORIZED, context);
   }
 }
-
 
 export class ForbiddenError extends AppError {
-  constructor(message: string = "You do not have permission to perform this action.") {
-    super(message, status.FORBIDDEN);
+  constructor(message = 'You do not have permission to perform this action.', context?: Record<string, any>) {
+    super(message, status.FORBIDDEN, context);
   }
 }
 
-
 export class BadRequestError extends AppError {
-  constructor(message: string = "The request could not be understood by the server.") {
-    super(message, status.BAD_REQUEST);
+  constructor(message = 'The request could not be understood by the server.', context?: Record<string, any>) {
+    super(message, status.BAD_REQUEST, context);
   }
 }
