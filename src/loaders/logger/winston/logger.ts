@@ -43,7 +43,7 @@ const createLogger = (logSourceFilePath?: string) => {
         Route:    ${requestInfo || 'N/A'}
         Message:  ${message}${contextInfo ? `\n${contextInfo.replace(/\n/g, '\n  ')}` : ''}${stackTrace ? `\n${stackTrace.replace(/\n/g, '\n  ')}` : ''}
 ===============================`;
-      })
+      }),
     ),
     transports,
   });

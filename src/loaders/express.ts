@@ -28,7 +28,7 @@ module.exports = () => {
   }
   app.use(helmet());
   app.use(`${config.api.prefix}/v2`, globalAsyncErrorHandler(apiRouterV2));
-  app.use((err: Error, req: express.Request, res: express.Response, next: NextFunction) => {
+  app.use((err: Error, req: express.Request, res: express.Response) => {
     errorHandler.handleError(err, req, res);
   });
 
