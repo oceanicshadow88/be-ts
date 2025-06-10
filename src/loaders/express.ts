@@ -1,4 +1,3 @@
-import express, { NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
 import config from '../app/config/app';
 

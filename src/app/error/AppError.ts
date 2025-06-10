@@ -2,6 +2,7 @@ import status from 'http-status';
 
 export class AppError extends Error {
   public readonly statusCode: number;
+  
   public readonly context?: Record<string, any>;
 
   constructor(message: string, statusCode: number, context?: Record<string, any>) {
