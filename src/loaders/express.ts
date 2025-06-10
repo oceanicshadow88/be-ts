@@ -1,3 +1,4 @@
+import express, { NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
 import config from '../app/config/app';
 
@@ -27,8 +28,8 @@ module.exports = () => {
   }
   app.use(helmet());
   app.use(`${config.api.prefix}/v2`, globalAsyncErrorHandler(apiRouterV2));
-  app.use((err: Error, req: express.Request, res: express.Response) => {
-    errorHandler.handleError(err, req, res);
+  app.use((err: Error, req: express.Request, res: express.Response, next: NextFunction) => {
+    errorHandler.handleError(err, req, res, next);
   });
 
   return app;

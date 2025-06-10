@@ -11,7 +11,7 @@ const errorNameToStatus: { [key: string]: number } = {
 export const getStatusCode = (err: unknown): number => {
   if (typeof err === 'object' && err !== null) {
     const e = err as { name?: string; statusCode?: number; status?: number };
-    return e.statusCode || e.status || errorNameToStatus[e.name ?? 'Error'] || 501;
+    return (e.statusCode ?? e.status ?? errorNameToStatus[e.name ?? 'Error']) || 501;
   }
   return 501;
 };

@@ -8,7 +8,8 @@ export const getSourceFileFromStack = (stack?: string): string | undefined => {
   const lines = stack.split('\n');
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i];
-    const match = line.match(/\s*(?:at .*?\(([^:]+):\d+:\d+\)|at ([^:]+):\d+:\d+)/);
+    const regex = /\s*(?:at .*?\(([^:]+):\d+:\d+\)|at ([^:]+):\d+:\d+)/;
+    const match = regex.exec(line);
 
     let filePath: string | undefined;
     if (match) {
