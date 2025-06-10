@@ -8,7 +8,7 @@ import {
   getTicketsByEpic,
   toggleActive,
   updateTicket,
-  getStatusSummaryByProjectId,
+  getSummaryByProjectId,
   getStatusSummaryGroupedByEpic,
 } from '../../services/ticketService';
 import { asyncHandler } from '../../utils/helper';
@@ -22,18 +22,24 @@ declare module 'express-serve-static-core' {
   }
 }
 
-export const getCurrentSprintStatusSummary = async (req: Request, res: Response) => {
+export const getCurrentSprintSummary = async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.sendStatus(httpStatus.UNPROCESSABLE_ENTITY).json({ errors: errors });
   }
 
   const { projectId } = req.params;
-  const statusSummary = await getStatusSummaryByProjectId(projectId, req.dbConnection);
-  if (!statusSummary) {
-    return res.status(httpStatus.NOT_FOUND).json({ error: 'Status summary not found.' });
+  const { summaryBy } = req.query;
+
+  const dataSummary = await getSummaryByProjectId(
+    projectId,
+    req.dbConnection,
+    summaryBy as 'type' | 'status',
+  );
+  if (!dataSummary) {
+    return res.status(httpStatus.NOT_FOUND).json({ error: 'Data summary not found.' });
   }
-  return res.json(statusSummary);
+  return res.json(dataSummary);
 };
 
 export const getEpicsStatusSummary = async (req: Request, res: Response) => {

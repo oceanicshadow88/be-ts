@@ -1,8 +1,17 @@
-import { body, param } from 'express-validator';
+import { body, param, query } from 'express-validator';
 
 const show = [param('id').notEmpty()];
 
-const validateStatusSummary = [
+const validateSummary = [
+  param('projectId').notEmpty().withMessage('projectId is required').isString(),
+  query('summaryBy')
+    .notEmpty()
+    .withMessage('summaryBy is required')
+    .isIn(['type', 'status'])
+    .withMessage('summaryBy must be either "type" or "status"'),
+];
+
+const validateEpicSummary = [
   param('projectId').notEmpty().withMessage('projectId is required').isString(),
 ];
 
@@ -16,4 +25,4 @@ const update = [
 
 const remove = [param('id').notEmpty().isString()];
 
-export { show, store, update, remove, validateStatusSummary };
+export { show, store, update, remove, validateSummary, validateEpicSummary };
