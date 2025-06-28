@@ -1,11 +1,22 @@
 import request from 'supertest';
 import app from '../setup/app';
 import db from '../setup/db';
-import UserBuilder from './builders/userBuilder';
+import config from '../../src/app/config/app';
 
 describe('Register API tests', () => {
-  it('should register a company if correct data provided', async () => {
-    const res = await request(application).post('/api/v2/register').send(validForm);
-    expect(res.statusCode).toEqual(200);
+  it('should register a company if valid data provided', async () => {
+    const company = 'testcompany';
+  
+    const res = await request(app.application)
+      .post('/api/v2/register')
+      .send({
+        company: company,
+        email: db.defaultUser.email,
+      })
+    expect(res.statusCode).toBe(200);
+    expect(res.body.data.newTenants.origin).toBe(`${config.protocol}${company}.${config.mainDomain}`);
+    expect(res.body.data.newTenants.owner).toBe(db.defaultUser.id);
+    expect(res.body.data.newUser.email).toBe(db.defaultUser.email);
+    expect(res.body.data.newUser.id).toBe(db.defaultUser.id);
   });
 });

@@ -7,7 +7,6 @@ import * as Tenant from '../../model/tenants';
 import * as User from '../../model/user';
 import { emailRegister } from '../../services/registerServiceV2';
 import { winstonLogger } from '../../../loaders/logger';
-import { tenantsDBConnection } from '../../database/connections';
 import config from '../../config/app';
 
 export const invalidSubdomains: { [key: string]: boolean } = {
@@ -54,11 +53,9 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   let tenantModel;
   let newTenants;
   let tenantsUrl = `${config.protocol}${company}.${config.mainDomain}`;
-  const tenantsDbConnection = await tenantsDBConnection();
-
   try {
     // create new Tenant
-    tenantModel = await Tenant.getModel(tenantsDbConnection);
+    tenantModel = await Tenant.getModel(req.tenantsConnection);
     newTenants = await tenantModel.create({ origin: tenantsUrl });
   } catch (err) {
     return res.status(400).json({ status: 'fail', err });
@@ -67,7 +64,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   try {
     // update User and send email
     const { newUser, validationToken } = await emailRegister(
-      tenantsDbConnection,
+      req.tenantsConnection,
       email,
       newTenants,
       req.headers.origin ?? null,

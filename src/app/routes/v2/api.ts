@@ -62,6 +62,8 @@ import * as importController from '../../controllers/v1/importController';
 import * as exportController from '../../controllers/v1/exportController';
 import { config } from '../../config/app';
 
+router.use(saasMiddlewareV2.saas);
+
 // ----------------------- register -------------------------
 //apply tenant and register-stepOne-V2
 router.post('/register', registerValidation.register, registerV2Controller.register);
@@ -74,7 +76,6 @@ if (config.devopsMode) {
 router.get('/security', securityController.index);
 
 router.get('/payment/productsInfo', stripeController.getAllProductsInfo);
-router.use(saasMiddlewareV2.saas);
 
 //emailVerifyCheck-stepTwo-V2
 router.get('/register/:token', authenticationEmailTokenMiddlewareV2, registerV2Controller.verify);
