@@ -7,6 +7,12 @@ function registerRetroSprintRoomHandler(io: Server, socket: Socket) {
   });
 }
 
+function registerRetroItemBoardcastHandler(io: Server, socket: Socket) {
+  socket.on('retro_item_boardcast', (sprintId: string) => {
+    io.to(`retro_sprint_room_${sprintId}`).emit('retro_item_updated', sprintId);
+  });
+}
 export { 
   registerRetroSprintRoomHandler,
+  registerRetroItemBoardcastHandler,
 };
