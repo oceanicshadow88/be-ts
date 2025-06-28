@@ -7,4 +7,8 @@ export default {
   transform: {
     '^.+\\.(js|ts|tsx)$': 'babel-jest',
   },
+  testMatch: [
+    '**/__tests__/**/*.test.[jt]s?(x)',
+    '**/?(*.)+(spec|test).[jt]s?(x)'
+  ],
 };
