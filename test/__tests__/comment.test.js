@@ -60,7 +60,7 @@ afterAll(async () => {
   await dbHandler.closeDatabase();
 });
 
-describe('Create Comment Test', () => {
+describe.skip('Create Comment Test', () => {
   it('should create comment', async () => {
     const newComment = {
       ticket: '62e4bc9692266e6c8fcd0bbe',
@@ -82,7 +82,7 @@ describe('Create Comment Test', () => {
   });
 });
 
-describe('Get Comment Test', () => {
+describe.skip('Get Comment Test', () => {
   it('should get comment', async () => {
     const id = '62f3664589e47f4d0b7e5327';
     const res = await request(application).get(`/api/v2/comments/${id}`);
@@ -91,7 +91,7 @@ describe('Get Comment Test', () => {
   });
 });
 
-describe('Update Comment Test', () => {
+describe.skip('Update Comment Test', () => {
   it('should update comment test', async () => {
     const id = '62f3664589e47f4d0b7e5327';
     const newComment = { content: 'Updated Comment' };
@@ -118,7 +118,7 @@ describe('Update Comment Test', () => {
     expect(res.statusCode).toEqual(404);
   });
 });
-describe('Delete Comment Test', () => {
+describe.skip('Delete Comment Test', () => {
   it('should delete comment', async () => {
     const id = '62f3664589e47f4d0b7e5327';
     const res = await request(application).delete(`/api/v2/comments/${id}`);

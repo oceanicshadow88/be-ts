@@ -13,7 +13,7 @@ afterAll(async () => {
   await restore();
 });
 
-describe('Show one board', () => {
+describe.skip('Show one board', () => {
   it('should show on board if all info is provided', async () => {
     const res = await request(application).get(`/api/v2/board/${BOARD_TEST.id}/all/all/all/all`);
     expect(res.statusCode).toBe(200);

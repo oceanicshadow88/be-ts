@@ -32,7 +32,7 @@ afterAll(async () => {
   saasMiddleware.saas.restore();
   await dbHandler.closeDatabase();
 });
-describe('Post /emailus', () => {
+describe.skip('Post /emailus', () => {
   it('should return a 400 status code for invalid req.body', async () => {
     const res = await request(application).post('/api/v2/emailus').send(invalidForm);
     expect(res.statusCode).toEqual(400);

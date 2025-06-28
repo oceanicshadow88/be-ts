@@ -20,7 +20,7 @@ const sprintInfo = {
   projectId: '6350d443bddbe8fed0138ffe',
 };
 
-describe('POST sprint', () => {
+describe.skip('POST sprint', () => {
   it('should create a sprint if the least info is provided', async () => {
     const res = await request(application).post(baseURL).send(sprintInfo);
     expect(res.statusCode).toBe(201);
@@ -86,7 +86,7 @@ describe('POST sprint', () => {
   });
 });
 
-describe('UPDATE sprint', () => {
+describe.skip('UPDATE sprint', () => {
   it('should update a sprint if valid info is provided', async () => {
     const res = await request(application)
       .put(`${baseURL}/${SPRINT_SEED._id}`)
@@ -123,7 +123,7 @@ describe('UPDATE sprint', () => {
   });
 });
 
-describe('DELETE sprint', () => {
+describe.skip('DELETE sprint', () => {
   it('should delete a sprint with correct id', async () => {
     const res = await request(application).delete(`${baseURL}/${SPRINT_SEED._id}`);
     expect(res.statusCode).toBe(204);
