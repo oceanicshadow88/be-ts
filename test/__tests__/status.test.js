@@ -14,7 +14,7 @@ afterAll(async () => {
   await restore();
 });
 
-describe.skip('Test statuses', () => {
+describe('Test statuses', () => {
   it('should get all statuses', async () => {
     const res = await request(application).get(`/api/v2/boards/${BOARD_SEED._id}/statuses`);
     expect(res.statusCode).toEqual(200);

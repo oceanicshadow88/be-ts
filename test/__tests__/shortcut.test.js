@@ -56,7 +56,7 @@ afterAll(async () => {
   await dbHandler.closeDatabase();
 });
 
-describe.skip('Create Shortcut Test', () => {
+describe('Create Shortcut Test', () => {
   it('should create shortcut', async () => {
     const shortcut = { shortcutLink: 'https://www.google.com', name: 'Google' };
     const res = await request(application)
@@ -82,7 +82,7 @@ describe.skip('Create Shortcut Test', () => {
     expect(res.statusCode).toEqual(422);
   });
 });
-describe.skip('Update Shortcut Test', () => {
+describe('Update Shortcut Test', () => {
   it('should update shortcut', async () => {
     const newShortcut = { shortcutLink: 'https://www.steinsgate.jp/', name: 'Steins Gate' };
     const res = await request(application)
@@ -108,7 +108,7 @@ describe.skip('Update Shortcut Test', () => {
     expect(res.statusCode).toEqual(422);
   });
 });
-describe.skip('Destroy Shortcut Test', () => {
+describe('Destroy Shortcut Test', () => {
   it('should delete shortcut', async () => {
     const res = await request(application).delete(
       `/api/v2/projects/${projectId}/shortcuts/${shortcutId}`,
