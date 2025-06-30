@@ -63,7 +63,7 @@ export const findTickets = async (
         path: 'project',
         model: projectModel,
       })
-      .sort({ createdAt: 1 });
+      .sort({ rank: 1 });
 
     const activeTickets = tickets.filter((e: ITicket) => e.isActive === true);
 

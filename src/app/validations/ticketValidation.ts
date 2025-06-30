@@ -15,7 +15,7 @@ const validateEpicSummary = [
   param('projectId').notEmpty().withMessage('projectId is required').isString(),
 ];
 
-const store = [body(['title', 'type']).notEmpty()];
+const store = [body(['title', 'type', 'rank']).notEmpty()];
 
 const update = [
   param('id').notEmpty().isString(),

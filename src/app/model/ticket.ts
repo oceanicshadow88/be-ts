@@ -71,7 +71,7 @@ export const ticketSchema = new mongoose.Schema(
     type: {
       type: Types.ObjectId,
       ref: 'types',
-      require: true,
+      required: true,
     },
     isActive: {
       type: Boolean,
@@ -82,7 +82,11 @@ export const ticketSchema = new mongoose.Schema(
     },
     ticketNumber: {
       type: Number,
-      require: true,
+    },
+    rank: {
+      type: String,
+      required: true,
+      index: true,
     },
     temp: {
       type: String,
