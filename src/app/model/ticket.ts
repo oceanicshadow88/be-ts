@@ -85,7 +85,6 @@ export const ticketSchema = new mongoose.Schema(
     },
     rank: {
       type: String,
-      required: true,
       index: true,
     },
     temp: {

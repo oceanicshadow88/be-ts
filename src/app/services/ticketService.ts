@@ -10,6 +10,7 @@ import * as Project from '../model/project';
 import * as Epic from '../model/epic';
 import { ActivityType, IChange, ITicket, ITicketDocument } from '../types';
 import mongoose, { Mongoose, Types } from 'mongoose';
+import { generateNKeysBetween } from '../utils/generateRank';
 
 /** Find tickets with given filters
  * @param dbConnection Mongoose
@@ -104,6 +105,57 @@ export const createTicket = async (req: Request) => {
   const result = await findTickets(req.dbConnection, req.tenantsConnection, { _id: ticket._id });
   return result[0];
 };
+
+export const migrateTicketRanks = async (req: Request) => {
+  try {
+    const { projectId } = req.body;
+    
+    const ticketModel = await Ticket.getModel(req.dbConnection);
+
+    const ticketsWithoutRanks = await ticketModel.find({ 
+      project: projectId, 
+      rank: { $in: [null, undefined, ''] }
+    }).sort({ createdAt: 1 });
+    
+    const groupedTickets: { [key: string]: typeof ticketsWithoutRanks } = {};
+    ticketsWithoutRanks.forEach((ticket: any) => {
+      const key = ticket.sprint || 'backlog';
+      if (!groupedTickets[key]) {
+        groupedTickets[key] = [];
+      }
+      groupedTickets[key].push(ticket);
+    });
+    
+    const updates: { ticketId: string; rank: string }[] = [];
+    Object.entries(groupedTickets).forEach(([sprintId, tickets]) => {
+      const ticketsArray = tickets as any[];
+      const newRanks = generateNKeysBetween(null, null, ticketsArray.length);
+      
+      ticketsArray.forEach((ticket, index) => {
+        updates.push({
+          ticketId: ticket.id,
+          rank: newRanks[index]
+        });
+      });
+    });
+    
+    if (updates.length > 0) {
+      const updatePromises = updates.map(({ ticketId, rank }) => 
+        ticketModel.findByIdAndUpdate(ticketId, { rank })
+      );
+      await Promise.all(updatePromises);
+    }
+    
+    return {
+      success: true,
+      message: `Migrated ranks for ${updates.length} tickets`,
+      updatedCount: updates.length
+    };
+    
+  } catch (error) {
+    throw error;
+  }
+}
 
 const comparePrimitives = (
   field: string,

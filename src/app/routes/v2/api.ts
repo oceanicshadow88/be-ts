@@ -174,6 +174,13 @@ router.post(
   ticketController.store,
 );
 
+router.post(
+  '/tickets/migrate-ranks',
+  ticketValidation.migrateRanks,
+  authenticationTokenMiddleware,
+  ticketController.migrateRanks,
+);
+
 router.put(
   '/tickets/:id',
   ticketValidation.update,
