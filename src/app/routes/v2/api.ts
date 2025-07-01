@@ -73,9 +73,10 @@ if (config.devopsMode) {
 }
 router.get('/security', securityController.index);
 
+router.get('/payment/productsInfo', stripeController.getAllProductsInfo);
+
 router.use(saasMiddlewareV2.saas);
 router.post('/register', registerValidation.register, registerV2Controller.register);
-router.get('/payment/productsInfo', stripeController.getAllProductsInfo);
 
 //emailVerifyCheck-stepTwo-V2
 router.get('/register/:token', authenticationEmailTokenMiddlewareV2, registerV2Controller.verify);
