@@ -62,11 +62,9 @@ import * as importController from '../../controllers/v1/importController';
 import * as exportController from '../../controllers/v1/exportController';
 import { config } from '../../config/app';
 
-router.use(saasMiddlewareV2.saas);
 
 // ----------------------- register -------------------------
 //apply tenant and register-stepOne-V2
-router.post('/register', registerValidation.register, registerV2Controller.register);
 router.get('/healthcheck', healthCheckController.index);
 router.get('/domains/exists', domainController.isValidDomain);
 router.get('/domains', domainController.index);
@@ -75,6 +73,8 @@ if (config.devopsMode) {
 }
 router.get('/security', securityController.index);
 
+router.use(saasMiddlewareV2.saas);
+router.post('/register', registerValidation.register, registerV2Controller.register);
 router.get('/payment/productsInfo', stripeController.getAllProductsInfo);
 
 //emailVerifyCheck-stepTwo-V2
