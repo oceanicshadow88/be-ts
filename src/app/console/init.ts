@@ -7,11 +7,7 @@ import config from '../config/app';
 import fs from 'fs';
 import path from 'path';
 import * as Tenant from '../model/tenants';
-import * as StripeSubscription from '../model/stripeSubscription';
 import * as healthCheckService from '../services/healthCheckService';
-import { getStripe } from '../lib/stripe';
-import { getFreePlanPriceId, getFreePlanProductId } from '../services/stripeService';
-import stripeConfig from '../config/stripe';
 import { createUser } from './temp';
 const options = {
   useNewURLParser: true,
@@ -55,50 +51,6 @@ const init = async (domainInput: string, emailInput: string, passwordInput: stri
       active: true,
       owner: new mongoose.Types.ObjectId(resUser._id),
     });
-
-    if (stripeConfig.stripeEnabled) {
-      const stripeSubscriptionModel = StripeSubscription.getModel(tenantsDbConnection);
-      const tenantSubscription = await stripeSubscriptionModel.findOne({ tenant: tenant._id });
-      let stripeCustomerId = tenantSubscription?.stripeCustomerId;
-      let stripeSubscriptionId = tenantSubscription?.stripeSubscriptionId;
-      let stripeSubscriptionStatus = tenantSubscription?.stripeSubscriptionStatus;
-      const freePlanPriceId = await getFreePlanPriceId();
-      const freePlanProductId = await getFreePlanProductId();
-      if (!tenantSubscription) {
-        const customerInfo = await getStripe().customers.create({
-          email: emailAdd,
-          metadata: { tenantId: tenant._id.toString() },
-        });
-        stripeCustomerId = customerInfo.id;
-        const subscriptionInfo = await getStripe().subscriptions.create({
-          customer: stripeCustomerId,
-          items: [{ price: freePlanPriceId }],
-          metadata: { tenantId: tenant._id.toString() },
-        });
-        stripeSubscriptionId = subscriptionInfo.id;
-        stripeSubscriptionStatus = subscriptionInfo.status;
-        await stripeSubscriptionModel.findOneAndUpdate(
-          { tenant: tenant._id },
-          {
-            stripeCustomerId: stripeCustomerId,
-            stripeSubscriptionId: stripeSubscriptionId,
-            stripePriceId: freePlanPriceId,
-            stripeProductId: freePlanProductId,
-            stripeSubscriptionStatus: stripeSubscriptionStatus,
-          },
-          { upsert: true, new: true },
-        );
-      }
-
-      await tenantModel.findByIdAndUpdate(activeTenant, {
-        tenantTrialHistory: [
-          {
-            productId: freePlanProductId,
-            priceIds: [freePlanPriceId],
-          },
-        ],
-      });
-    }
 
     console.error(
       '\x1b[31mNow please FOLLOW README.MD and start up your BACKEND and FRONTEND server!\x1b[0m',
