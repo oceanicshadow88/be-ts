@@ -17,10 +17,28 @@ export default class UserBuilder extends BaseBuilder {
     return this;
   }
 
+  withPassword(password) {
+    this.properties.password = password;
+    return this;
+  }
+
+  withActive(active) {
+    this.properties.active = active;
+    return this;
+  }
+
+  withTenants(tenants) {
+    this.properties.tenants = tenants;
+    return this;
+  }
+
   build() {
     return {
       email: this.properties.email,
       name: this.properties.name,
+      password: this.properties.password,
+      active: this.properties.active,
+      tenants: this.properties.tenants,
     };
   }
 
@@ -28,6 +46,8 @@ export default class UserBuilder extends BaseBuilder {
     return {
       email: 'techscrum@gmail.com',
       name: 'Default User',
+      password: 'test',
+      active: true,
     };
   }
 

@@ -33,6 +33,7 @@ const tenantSchema = new Schema<ITenant>(
     active: { type: Boolean, default: false },
     email: {
       type: String,
+      lowercase: true,
     },
     tenantTrialHistory: [
       {
