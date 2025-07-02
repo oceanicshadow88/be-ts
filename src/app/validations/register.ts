@@ -1,11 +1,12 @@
-import { param, body } from 'express-validator';
+import { body } from 'express-validator';
 
 const register = [
-  param('email').isEmail(),
+  body('email').notEmpty().isEmail(),
+  body('company').notEmpty(),
 ];
 
 const store = [
-  body('email').notEmpty(),
+  body('email').notEmpty().isEmail(),
   body('name').notEmpty(),
   body('password').notEmpty(),
 ];

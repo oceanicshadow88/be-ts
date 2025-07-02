@@ -6,6 +6,7 @@ import * as saasMiddleware from '../../src/app/middleware/saasMiddlewareV2';
 import * as permissionMiddleware from '../../src/app/middleware/permissionMiddleware';
 
 beforeAll(async () => {
+  require('dotenv').config();
   await db.connect();
   await db.createDefaultData();
 
