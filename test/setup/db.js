@@ -1,11 +1,13 @@
 import UserBuilder from '../__tests__/builders/userBuilder';
+import TenantBuilder from '../__tests__/builders/tenantBuilder';
 import dbHandler from './dbHandler';
 
 let dbConnection = null;
 let tenantsConnection = null;
 let isInitialized = false;
-let tenantId = '62e333606fb0da0a12dcfe78';
 let defaultUser = null;
+let defaultTenant = null;
+let tenantId = '62e333606fb0da0a12dcfe78';
 
 async function connect() {
   if (!isInitialized) {
@@ -26,6 +28,9 @@ async function connect() {
 async function createDefaultData() {
   const user = await new UserBuilder().save();
   defaultUser = user;
+
+  const tenant = await new TenantBuilder().withOwner(user._id).save();
+  defaultTenant = tenant;
 }
 
 async function clearDatabase() {
@@ -43,6 +48,9 @@ export default {
   },
   get defaultUser() {
     return defaultUser;
+  },
+  get defaultTenant() {
+    return defaultTenant;
   },
   tenantId,
 };

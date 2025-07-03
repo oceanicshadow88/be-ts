@@ -27,12 +27,18 @@ export default class TenantBuilder extends BaseBuilder {
     return this;
   }
 
+  withTenantTrialHistory(tenantTrialHistory) {
+    this.properties.tenantTrialHistory = tenantTrialHistory;
+    return this;
+  }
+  
   build() {
     return {
       origin: this.properties.origin,
       plan: this.properties.plan,
       owner: this.properties.owner,
       active: this.properties.active,
+      tenantTrialHistory: this.properties.tenantTrialHistory,
     };
   }
 
@@ -42,6 +48,12 @@ export default class TenantBuilder extends BaseBuilder {
       plan: 'Free',
       owner: 'Default Owner',
       active: true,
+      tenantTrialHistory: [
+        {
+          productId: 'default_product_1234567890',
+          priceIds: ['default_price_1234567890'],
+        },
+      ],
     };
   }
 

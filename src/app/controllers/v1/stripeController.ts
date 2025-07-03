@@ -20,7 +20,8 @@ export const getCurrentPlanId = asyncHandler(async (req: Request, res: Response)
 
 export const isCurrentPlanFree = asyncHandler(async (req: Request, res: Response) => {
   const tenantId = req.tenantId;
-  const isFreePlan = await stripeService.isCurrentPlanFree(tenantId);
+  const tenantsConnection = req.tenantsConnection;
+  const isFreePlan = await stripeService.isCurrentPlanFree(tenantId, tenantsConnection);
   res.status(200).json(isFreePlan);
 });
 
