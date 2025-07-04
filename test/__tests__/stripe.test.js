@@ -1,10 +1,7 @@
 import request from 'supertest';
 import app from '../setup/app';
 import db from '../setup/db';
-import sinon from 'sinon';
 import * as stripeLib from '../../src/app/lib/stripe';
-import * as saasMiddleware from '../../src/app/middleware/saasMiddlewareV2';
-import TenantBuilder from './builders/tenantBuilder';
 
 import {
   StripePriceBuilder,
@@ -12,6 +9,7 @@ import {
   StripeSessionBuilder,
   StripeSubscriptionBuilder
  } from './builders/stripeBuilder';
+import e from 'express';
 
 
 
@@ -67,7 +65,7 @@ describe('Stripe API tests', () => {
 
     const res = await request(app.application)
       .post('/api/v2/payment/createCustomerPortal')
-      .set('Origin', 'http://test.com')
+      .set('Origin', db.defaultTenant.origin)
       .send({
         customerId: stripeSubscription.stripeCustomerId,
       });
@@ -110,11 +108,58 @@ describe('Stripe API tests', () => {
     expect(res.body).toBe(true);
   });
 
-  it('can get current plan\'s id', async () => {});
+  it('can get current plan\'s id', async () => {
+    const subscription = await new StripeSubscriptionBuilder()
+      .withTenant(db.defaultTenant._id)
+      .save();
 
-  it('can get customer id', async () => {});
+    const res = await request(app.application)
+      .get('/api/v2/payment/currentPlanId');
 
-  it('can get price infomation', async () => {});
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toBe(subscription.stripeProductId);
+  });
 
-  it('can get subscription history', async () => {});
+  it('can get customer id', async () => {
+    const subscription = await new StripeSubscriptionBuilder()
+      .withTenant(db.defaultTenant._id)
+      .save();
+
+    const res = await request(app.application)
+      .get('/api/v2/payment/customerId');
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toBe(subscription.stripeCustomerId);
+  });
+
+  it('can get price infomation', async () => {
+    const stripePrice = await new StripePriceBuilder().save();
+
+    const res = await request(app.application)
+      .get(`/api/v2/payment/priceInfo/${stripePrice._id}`)
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty('stripePriceId', stripePrice.stripePriceId);
+    expect(res.body.stripePriceId).toBe(stripePrice.stripePriceId);
+    expect(res.body).toHaveProperty('subscriptionAmount', stripePrice.subscriptionAmount);
+    expect(res.body.subscriptionAmount).toBe(stripePrice.subscriptionAmount);
+    expect(res.body).toHaveProperty('subscriptionPeriod', stripePrice.subscriptionPeriod);
+    expect(res.body.subscriptionPeriod).toBe(stripePrice.subscriptionPeriod);
+  });
+
+  it('can get subscription history', async () => {
+    const productsInfo = db.defaultTenant.tenantTrialHistory.map(history => (history.productId));
+
+    const stripeProducts = await Promise.all(productsInfo.map(productId =>
+      new StripeProductBuilder()
+        .withStripeProductId(productId)
+        .save()
+    ));
+
+    const res = await request(app.application)
+      .get('/api/v2/payment/subscriptionHistory');
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toBeInstanceOf(Array);
+    expect(res.body.length).toBe(stripeProducts.length);
+    expect(res.body.sort()).toEqual(stripeProducts.map(product => (product.stripeProductName)).sort());
+  });
 });
