@@ -67,6 +67,6 @@ export const listenStripeWebhook = asyncHandler(async (req: Request, res: Respon
   const event = req.body;
   const payloadString = JSON.stringify(req.body).toString();
   const tenantId = req.tenantId;
-  stripeService.listenStripeWebhook(tenantId, req.tenantsConnection, event, payloadString);
+  await stripeService.listenStripeWebhook(tenantId, req.tenantsConnection, event, payloadString);
   res.sendStatus(200);
 });

@@ -2,18 +2,132 @@ import request from 'supertest';
 import app from '../setup/app';
 import db from '../setup/db';
 import * as stripeLib from '../../src/app/lib/stripe';
+import * as StripePrice from '../../src/app/model/stripePrice';
+import * as StripeProduct from '../../src/app/model/stripeProduct';
+import * as StripeSession from '../../src/app/model/stripeSession';
+import * as StripeSubscription from '../../src/app/model/stripeSubscription';
+import * as Tenant from '../../src/app/model/tenants';
 
 import {
   StripePriceBuilder,
   StripeProductBuilder, 
-  StripeSessionBuilder,
   StripeSubscriptionBuilder
  } from './builders/stripeBuilder';
-import e from 'express';
-
-
 
 describe('Stripe API tests', () => {
+  let stripePriceModel = null;
+  let stripeProductModel = null;
+  let stripeSessionModel = null;
+  let stripeSubscriptionModel = null;
+  let tenantModel = null;
+
+  beforeAll(async () => {
+    stripePriceModel = StripePrice.getModel(db.tenantsConnection);
+    stripeProductModel = StripeProduct.getModel(db.tenantsConnection);
+    stripeSessionModel = StripeSession.getModel(db.tenantsConnection);
+    stripeSubscriptionModel = StripeSubscription.getModel(db.tenantsConnection);
+    tenantModel = Tenant.getModel(db.tenantsConnection);
+  });
+
+  it('should handle Stripe checkout session webhook event', async () => {
+    const customerId = 'cus_test_123';
+    const subscriptionId = 'sub_test_123';
+
+    const event = {
+      id: 'evt_test_123',
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_test_123',
+          customer: customerId,
+          payment_status: 'paid',
+          subscription: subscriptionId,
+          metadata: {
+            tenantId: db.defaultTenant._id.toString(),
+          }, 
+        },
+      },
+    };
+
+    const sessionId = event.data.object.id;
+    const price = await new StripePriceBuilder().save();
+    const product = await new StripeProductBuilder()
+      .withStripePrices(price._id, price._id)
+      .save();
+
+    const originSubscription = await new StripeSubscriptionBuilder()
+      .withTenant(db.defaultTenant._id)
+      .save();
+    
+    jest.spyOn(stripeLib, 'getStripe').mockReturnValue({
+      webhooks: {
+        generateTestHeaderString: jest.fn().mockReturnValue('test-header'),
+        constructEvent: jest.fn().mockImplementation((payload, header, secret) => {
+          return JSON.parse(payload);
+        }),
+      },
+      subscriptions: {
+        retrieve: jest.fn().mockResolvedValue({
+          id: subscriptionId,
+          items: {
+            data: [{
+              price: {
+                id: price.stripePriceId,
+                product: product.stripeProductId,
+              },
+            }],
+          },
+          customer: customerId,
+          status: 'active',
+        }),
+        cancel: jest.fn().mockResolvedValue({
+          id: subscriptionId,
+          status: 'canceled',
+        }),
+      }
+    });
+
+    const res = await request(app.application)
+      .post('/api/v2/webhook')
+      .send(event)
+
+    expect(res.statusCode).toBe(200);
+    
+    // Check if the original subscription is canceled
+    const canceledSubscription = await stripeSubscriptionModel.findOne({
+      stripeSubscriptionId: originSubscription.stripeSubscriptionId
+    });
+    expect(canceledSubscription).not.toBeNull();
+    expect(canceledSubscription.stripeSubscriptionStatus).toBe('canceled');
+
+    // Check if the new session is created
+    const newSession = await stripeSessionModel.findOne({
+      stripeSessionId: sessionId, 
+      tenant: db.defaultTenant._id,
+    });
+    expect(newSession).not.toBeNull();
+
+    // Check if the tenant's trial history is updated
+    const tenant = await tenantModel.findById(db.defaultTenant._id);
+    expect(tenant.tenantTrialHistory).not.toBeNull();
+    const lastTrialHistory = tenant.tenantTrialHistory.at(-1);
+    expect(lastTrialHistory.productId).toBe(product.stripeProductId);
+    lastTrialHistory.priceIds.map((priceId) => {
+      expect(priceId).toBe(price.stripePriceId);
+    });
+
+    // Check if the new subscription is created
+    const newSubscription = await stripeSubscriptionModel.findOne({
+      tenant: db.defaultTenant._id,
+      stripeProductId: product.stripeProductId,
+      stripePriceId: price.stripePriceId,
+      stripeCustomerId: customerId,
+      stripeSubscriptionId: subscriptionId,
+      stripeSubscriptionStatus: 'active',
+    });
+    expect(newSubscription).not.toBeNull();
+  });
+
   it('should create a checkout session', async () => {
     const stripePrice = await new StripePriceBuilder().save();
     const stripeSubscription = await new StripeSubscriptionBuilder()

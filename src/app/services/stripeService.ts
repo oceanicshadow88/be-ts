@@ -536,10 +536,10 @@ export const listenStripeWebhook = async (
   });
   const constructEvent = getStripe().webhooks.constructEvent(payloadString, header, secret);
   if (constructEvent.type === 'checkout.session.completed') {
-    handleCheckoutSessionCompleted(tenantId, tenantsConnection, event);
+    await handleCheckoutSessionCompleted(tenantId, tenantsConnection, event);
   }
   if (constructEvent.type === 'customer.subscription.updated') {
-    handleSubscriptionUpdated(tenantId, tenantsConnection, event);
+    await handleSubscriptionUpdated(tenantId, tenantsConnection, event);
   }
 };
 
