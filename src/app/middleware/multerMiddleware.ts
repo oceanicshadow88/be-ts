@@ -1,19 +1,13 @@
-import AWS from 'aws-sdk';
+import { S3 } from '@aws-sdk/client-s3';
 import multer from 'multer';
 import multerS3 from 'multer-s3';
 import path from 'path';
 import awsConfig from '../config/aws';
 
-AWS.config.update({
-  region: awsConfig.awsRegion,
-  accessKeyId: awsConfig.awsAccessKey,
-  secretAccessKey: awsConfig.awsSecretKey,
-});
-
-const s3 = new AWS.S3();
+const s3 = new S3(awsConfig);
 
 const storage = multerS3({
-  s3: s3,
+  s3: s3 as any,
   bucket: 'image.techscrumapp.com',
   metadata: function (req: any, file: any, cb: any) {
     cb(null, { fieldName: file.fieldname });
