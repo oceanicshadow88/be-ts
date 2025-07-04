@@ -26,7 +26,7 @@ export default class LabelBuilder extends BaseBuilder {
     return {
       name: 'Default Label',
       slug: 'default-label',
-      tenant: db.tenantId,
+      tenant: db.defaultTenant._id,
     };
   }
 
