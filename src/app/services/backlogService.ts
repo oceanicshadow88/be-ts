@@ -78,6 +78,6 @@ export const fetchBacklogTickets = async (req: Request) => {
     req.dbConnection,
     req.tenantsConnection,
     filters,
-  );
+  );  
   return allTickets;
 };

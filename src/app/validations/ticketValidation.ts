@@ -17,6 +17,8 @@ const validateEpicSummary = [
 
 const store = [body(['title', 'type']).notEmpty()];
 
+const migrateRanks = [body(['projectId']).notEmpty()];
+
 const update = [
   param('id').notEmpty().isString(),
   body('title').if(body('title').exists()).isString().isLength({ min: 1 }),
@@ -25,4 +27,4 @@ const update = [
 
 const remove = [param('id').notEmpty().isString()];
 
-export { show, store, update, remove, validateSummary, validateEpicSummary };
+export { show, store, update, remove, validateSummary, validateEpicSummary, migrateRanks };
