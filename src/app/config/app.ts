@@ -23,6 +23,7 @@ export const config = {
   protocol: process.env.ENVIRONMENT === 'local' ? 'http://' : 'https://',
   devopsMode: process.env.DEVOPS_MODE === 'true' ? true : false,
   postman_testing: process.env.POSTMAN_TESTING ?? 'false',
+  rabbitMQUrl: process.env.RABBITMQ_URL ?? '',
 };
 
 export default config;
