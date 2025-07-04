@@ -3,8 +3,6 @@ import * as path from 'path';
 import 'winston-daily-rotate-file';
 import * as fs from 'fs';
 
-
-
 const logDir = 'storage/logs';
 if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir, { recursive: true });
@@ -31,17 +29,21 @@ const createLogger = (logSourceFilePath?: string) => {
       file: logSourceFilePath ? path.basename(logSourceFilePath) : undefined,
     },
     format: winston.format.combine(
-      winston.format.timestamp(),
-      winston.format.printf(
-        ({ timestamp, level, message, file, error, requestPath, method }) => {
-          const fileInfo = file ? `[${file}]` : '';
-          const requestInfo = requestPath && method ? `[${method} ${requestPath}]` : '';
-          const stack = error?.stack;
-          const contextInfo = error?.context ? `\n${JSON.stringify(error.context)}` : '';
-          const stackTrace = stack ? `\n${stack}` : '';
-          return `[${timestamp}]${fileInfo}${requestInfo} [${level}]: ${message}${contextInfo}${stackTrace}`;
-        },
-      ),
+      winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+      winston.format.printf(({ timestamp, level, message, sourceFile, apiRoute, httpMethod, context, error }) => {
+        const fileInfo = sourceFile ? `[${sourceFile}]` : '';
+        const errorType = error?.name ? `${error.name}` : '';
+        const requestInfo = apiRoute && httpMethod ? `[${httpMethod} ${apiRoute}]` : '';
+        const contextInfo = context ? `\nContext: ${JSON.stringify(context, null, 2)}` : '';
+        const stackTrace = error?.stack ? `\nStack: ${error.stack}` : '';
+        
+        return `\n========== ${level.toUpperCase()}: ${errorType} ==========
+        Timestamp: ${timestamp}
+        Source:   ${fileInfo || 'N/A'}
+        Route:    ${requestInfo || 'N/A'}
+        Message:  ${message}${contextInfo ? `\n${contextInfo.replace(/\n/g, '\n  ')}` : ''}${stackTrace ? `\n${stackTrace.replace(/\n/g, '\n  ')}` : ''}
+===============================`;
+      }),
     ),
     transports,
   });
