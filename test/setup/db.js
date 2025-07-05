@@ -7,7 +7,6 @@ let tenantsConnection = null;
 let isInitialized = false;
 let defaultUser = null;
 let defaultTenant = null;
-let tenantId = '62e333606fb0da0a12dcfe78';
 
 async function connect() {
   if (!isInitialized) {
@@ -52,5 +51,4 @@ export default {
   get defaultTenant() {
     return defaultTenant;
   },
-  tenantId,
 };
