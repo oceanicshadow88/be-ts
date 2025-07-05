@@ -2,34 +2,28 @@ import request from 'supertest';
 import app from '../setup/app';
 import db from '../setup/db';
 import * as stripeLib from '../../src/app/lib/stripe';
-import * as StripePrice from '../../src/app/model/stripePrice';
-import * as StripeProduct from '../../src/app/model/stripeProduct';
 import * as StripeSession from '../../src/app/model/stripeSession';
 import * as StripeSubscription from '../../src/app/model/stripeSubscription';
 import * as Tenant from '../../src/app/model/tenants';
-
 import {
   StripePriceBuilder,
   StripeProductBuilder, 
   StripeSubscriptionBuilder
  } from './builders/stripeBuilder';
+import { describe } from 'node:test';
 
-describe('Stripe API tests', () => {
-  let stripePriceModel = null;
-  let stripeProductModel = null;
+describe('Stripe Webhook tests', () => {
   let stripeSessionModel = null;
   let stripeSubscriptionModel = null;
   let tenantModel = null;
 
   beforeAll(async () => {
-    stripePriceModel = StripePrice.getModel(db.tenantsConnection);
-    stripeProductModel = StripeProduct.getModel(db.tenantsConnection);
     stripeSessionModel = StripeSession.getModel(db.tenantsConnection);
     stripeSubscriptionModel = StripeSubscription.getModel(db.tenantsConnection);
     tenantModel = Tenant.getModel(db.tenantsConnection);
   });
-
-  it('should handle Stripe checkout session webhook event', async () => {
+  
+  it('should handle Stripe checkout session', async () => {
     const customerId = 'cus_test_123';
     const subscriptionId = 'sub_test_123';
 
@@ -42,9 +36,6 @@ describe('Stripe API tests', () => {
           customer: customerId,
           payment_status: 'paid',
           subscription: subscriptionId,
-          metadata: {
-            tenantId: db.defaultTenant._id.toString(),
-          }, 
         },
       },
     };
@@ -128,6 +119,140 @@ describe('Stripe API tests', () => {
     expect(newSubscription).not.toBeNull();
   });
 
+  it('should handle customer subscription upgrade/downgrade', async () => {
+    const price = await new StripePriceBuilder().save();
+    const product = await new StripeProductBuilder()
+      .withStripePrices(price._id, price._id)
+      .save();
+
+    const subscription = await new StripeSubscriptionBuilder().save();
+    const subscriptionId = subscription.stripeSubscriptionId;
+    const subscriptionStatus = 'active';
+    const customerId = 'cus_test_123';
+
+    const event = {
+      id: 'evt_test_456',
+      type: 'customer.subscription.updated',
+      data: {
+        object: {
+          id: 'cs_test_123',
+          customer: customerId,
+          items: {
+            data: [{
+              price: {
+                id: price.stripePriceId,
+                product: product.stripeProductId,
+              },
+              subscription: subscriptionId,
+            }],
+          },
+          status: subscriptionStatus,
+        },
+        previous_attributes: {
+          items: 'test',
+        },
+      },
+    }
+
+    jest.spyOn(stripeLib, 'getStripe').mockReturnValue({
+      webhooks: {
+        generateTestHeaderString: jest.fn().mockReturnValue('test-header'),
+        constructEvent: jest.fn().mockImplementation((payload, header, secret) => {
+          return JSON.parse(payload);
+        }),
+      },
+      subscriptions: {
+        update: jest.fn().mockResolvedValue({}),
+      }
+    });
+
+    const res = await request(app.application)
+      .post('/api/v2/webhook')
+      .send(event);
+
+    expect(res.statusCode).toBe(200);
+
+    // Check if the subscription is updated
+    const updatedSubscription = await stripeSubscriptionModel.findOne({
+      stripeSubscriptionId: subscriptionId,
+      tenant: db.defaultTenant._id,
+    });
+    expect(updatedSubscription).not.toBeNull();
+    expect(updatedSubscription.stripePriceId).toBe(price.stripePriceId);
+    expect(updatedSubscription.stripeProductId).toBe(product.stripeProductId);
+  });
+
+  it.each`
+    subscriptionStatus | expectedStatus | description
+    ${'past_due'}      | ${'free'}      | ${'should move to free plan when trial ends and status is past_due'}
+    ${'active'}        | ${'active'}    | ${'should stay active when trial ends and status is active'}
+  `('$description', async ({ subscriptionStatus, expectedStatus }) => {
+    const price = await new StripePriceBuilder()
+      .withSubscriptionAmount(subscriptionStatus === 'past_due' ? 0 : 29)
+      .save();
+    const product = await new StripeProductBuilder()
+      .withStripePrices(price._id, price._id)
+      .withStripeProductName(subscriptionStatus === 'past_due' ? 'Free' : 'Not Free')
+      .save();
+    const subscription = await new StripeSubscriptionBuilder()
+      .withStripeSubscriptionStatus('active')
+      .save();
+
+    const event = {
+      id: 'evt_test_trial_end',
+      type: 'customer.subscription.updated',
+      data: {
+        object: {
+          id: subscription.stripeSubscriptionId,
+          customer: 'cus_test_123',
+          items: {
+            data: [{
+              price: {
+                id: price.stripePriceId,
+                product: product.stripeProductId,
+              },
+              subscription: subscription.stripeSubscriptionId,
+            }],
+          },
+          status: subscriptionStatus,
+        },
+        previous_attributes: {
+          status: 'test',
+        },
+      },
+    };
+
+    jest.spyOn(stripeLib, 'getStripe').mockReturnValue({
+      webhooks: {
+        generateTestHeaderString: jest.fn().mockReturnValue('test-header'),
+        constructEvent: jest.fn().mockImplementation((payload, header, secret) => {
+          return JSON.parse(payload);
+        }),
+      },
+      subscriptions: {
+        update: jest.fn().mockResolvedValue({}),
+      }
+    });
+
+    const res = await request(app.application)
+      .post('/api/v2/webhook')
+      .send(event);
+
+    expect(res.statusCode).toBe(200);
+
+    const updatedSubscription = await stripeSubscriptionModel.findOne({
+      stripeSubscriptionId: subscription.stripeSubscriptionId,
+      tenant: db.defaultTenant._id,
+    });
+
+    expect(updatedSubscription).not.toBeNull();
+    expect(updatedSubscription.stripePriceId).toBe(price.stripePriceId);
+    expect(updatedSubscription.stripeProductId).toBe(product.stripeProductId);
+    expect(updatedSubscription.stripeSubscriptionStatus).toBe('active');
+  });
+});
+
+describe('Stripe API tests', () => {
   it('should create a checkout session', async () => {
     const stripePrice = await new StripePriceBuilder().save();
     const stripeSubscription = await new StripeSubscriptionBuilder()

@@ -202,9 +202,8 @@ export const getFreePlanPriceId = async (tenantsConnection: Mongoose) => {
   return freePlanPriceId;
 };
 
-export const getFreePlanProductId = async () => {
+export const getFreePlanProductId = async (tenantsConnection: Mongoose) => {
   const FREE_PLAN = 'Free';
-  const tenantsConnection = await tenantsDBConnection();
   const stripeProductModel = StripeProduct.getModel(tenantsConnection);
   const freePlanProduct = await stripeProductModel.findOne({ stripeProductName: FREE_PLAN });
   if (!freePlanProduct) {
@@ -416,7 +415,7 @@ const moveUserToFreePlan = async (
   subscriptionId: string,
   customerId: string,
 ) => {
-  const freePlanProductId = await getFreePlanProductId();
+  const freePlanProductId = await getFreePlanProductId(tenantsConnection);
   const freePlanPriceId = await getFreePlanPriceId(tenantsConnection);
 
   await getStripe().subscriptions.update(subscriptionId, {
@@ -513,7 +512,6 @@ const handleSubscriptionUpdated = async (
   if (previousSubscriptionAttributes.hasOwnProperty('items')) {
     await updateSubscriptionPlan(tenantsConnection, tenantId, stripeSubscriptionData);
   }
-
   // case 2: Free trial ended (status changes from trialing to something else)
   if (
     previousSubscriptionAttributes.hasOwnProperty('status') &&

@@ -123,7 +123,7 @@ const processSubscription = async (tenantsConnection: Mongoose) => {
   const tenantModel = Tenant.getModel(tenantsConnection);
   const stripeSubscriptionModel = StripeSubscription.getModel(tenantsConnection);
   const freePlanPriceId = await getFreePlanPriceId(tenantsConnection);
-  const freePlanProductId = await getFreePlanProductId();
+  const freePlanProductId = await getFreePlanProductId(tenantsConnection);
   const tenants = await tenantModel.find()
     .populate({
       path: 'owner',
