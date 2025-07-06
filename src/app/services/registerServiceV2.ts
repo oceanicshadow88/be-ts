@@ -20,8 +20,6 @@ export const createSubscription = async (
   const stripeProduct = stripeProductModel.getModel(tenantsConnection);
   const stripeSubscription = stripeSubscriptionModel.getModel(tenantsConnection);
 
-  console.log(tenantsConnection, activeTenant, email);
-  console.log('---------------------------------------');
   const freePlanProduct = await stripeProduct
     .findOne({stripeProductName: 'Free'})
     .populate({
@@ -29,8 +27,13 @@ export const createSubscription = async (
       model: stripePrice
     });
 
-  console.log(freePlanProduct);
-  console.log('---------------------------------------');
+  if (!freePlanProduct) {
+    throw new Error('Free plan is not found');
+  }
+
+  if (!freePlanProduct.stripePrices?.monthly) {
+    throw new Error('Free plan monthly price is not found');
+  }
 
   const stripeCustomer = await getStripe().customers.create({
     email: email,
@@ -38,10 +41,6 @@ export const createSubscription = async (
       tenantId: activeTenant,
     }
   });
-
-  console.log(stripeCustomer);
-  console.log('---------------------------------------');
-
   
   const subscription = await getStripe().subscriptions.create({
     customer: stripeCustomer.id,
@@ -50,10 +49,6 @@ export const createSubscription = async (
     }],
     metadata: {tenantId: activeTenant}
   });
-
-  console.log(subscription);
-  console.log('---------------------------------------');
-
 
   const newSubscription = await stripeSubscription.findOneAndUpdate(
     { tenant: activeTenant },
@@ -66,9 +61,6 @@ export const createSubscription = async (
     },
     { upsert: true, new: true }
   );
-  console.log(newSubscription);
-  console.log('---------------------------------------');
-
 
   const tenant = tenantModel.getModel(tenantsConnection);
   const updatedTenant = await tenant.findByIdAndUpdate(
@@ -84,10 +76,6 @@ export const createSubscription = async (
     },
     { new: true }
   );
-  console.log(updatedTenant);
-  console.log('Tenant updated:', updatedTenant);
-  console.log('Trial history:', updatedTenant.tenantTrialHistory);
-  console.log('---------------------------------------');
 }
 
 export const emailRegister = async (
