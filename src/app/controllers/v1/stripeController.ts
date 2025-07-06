@@ -8,6 +8,12 @@ export const createStripeCheckoutSession = asyncHandler(async (req: Request, res
   const { priceId, customerId } = req.body;
   const domainUrl = req.headers.origin ?? '';
   const tenantId = req.tenantId;
+  console.log("Create stripe checkout session");
+  console.log('priceId', priceId);
+  console.log('customerId', customerId);  
+  console.log('domainUrl', domainUrl);
+  console.log('tenantId', tenantId);
+
   const stripeSessionInfo = await stripeService.createStripeCheckoutSession(req.tenantsConnection, domainUrl, priceId, customerId, tenantId);
   res.status(200).json(stripeSessionInfo);
 });
@@ -34,6 +40,7 @@ export const isCurrentPlanSubscribed = asyncHandler(async (req: Request, res: Re
 
 export const getCustomerId = asyncHandler(async (req: Request, res: Response) => {
   const tenantId = req.tenantId;
+  console.log('tenantId', tenantId);
   const customerId = await stripeService.getCustomerId(tenantId, req.tenantsConnection);
   res.status(200).json(customerId);
 });

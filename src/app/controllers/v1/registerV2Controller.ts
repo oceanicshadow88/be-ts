@@ -5,7 +5,7 @@ import mongoose from 'mongoose';
 import status from 'http-status';
 import * as Tenant from '../../model/tenants';
 import * as User from '../../model/user';
-import { emailRegister } from '../../services/registerServiceV2';
+import { emailRegister, createSubscription } from '../../services/registerServiceV2';
 import { winstonLogger } from '../../../loaders/logger';
 import config from '../../config/app';
 
@@ -57,7 +57,10 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     // create new Tenant
     tenantModel = await Tenant.getModel(req.tenantsConnection);
     newTenants = await tenantModel.create({ origin: tenantsUrl });
+    console.log('New tenant created:', newTenants);
+
   } catch (err) {
+    console.log('Tenant already exists:', tenantsUrl);
     return res.status(400).json({ status: 'fail', err });
   }
 
@@ -96,6 +99,16 @@ export const store = asyncHandler(async (req: Request, res: Response) => {
     user.activeAccount();
     const activeTenant = user.tenants.at(-1);
     const tenantModel = await Tenant.getModel(req.tenantsConnection);
+
+    try {
+      await createSubscription(req.tenantsConnection, activeTenant, email);
+      console.log('Subscription created successfully');
+    } catch (subscriptionError) {
+      console.error('Subscription creation failed:', subscriptionError);
+      // Continue even if subscription fails - you can retry later
+    }
+    // createSubscription(req.tenantsConnection, activeTenant, email);
+
     await tenantModel.findByIdAndUpdate(activeTenant, { active: true });
     res.send({ user });
   } catch (err) {

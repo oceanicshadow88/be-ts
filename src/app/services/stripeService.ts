@@ -256,6 +256,7 @@ export const getCustomerId = async (tenantId: string, tenantsConnection: Mongoos
     tenant: new mongoose.Types.ObjectId(tenantId),
   });
   if (tenantSubscriptionInfo) {
+    console.log('tenantSubscriptionInfo', tenantSubscriptionInfo);
     return tenantSubscriptionInfo.stripeCustomerId;
   }
 };
@@ -409,6 +410,66 @@ const handleCheckoutSessionCompleted = async (
   await saveStripeCheckoutData(tenantsConnection, stripeSessionData);
 };
 
+// const handleCheckoutSessionCompleted = async (
+//   tenantId: string,
+//   tenantsConnection: Mongoose,
+//   event: Stripe.Event,
+// ) => {
+//   const checkoutSessionData = event.data.object as Stripe.Checkout.Session;
+//   const sessionId = checkoutSessionData.id;
+//   const currentActiveSubscriptionId = checkoutSessionData.subscription as string;
+//   const customerId = checkoutSessionData.customer as string;
+//   const subscription = await getStripe().subscriptions.retrieve(currentActiveSubscriptionId);
+//   const productId = subscription.items.data[0]?.price.product as string;
+//   const priceId = subscription.items.data[0]?.price.id;
+//   const subscriptionStatus = subscription.status as string;
+  
+//   console.log('Checkout session completed for tenant:', tenantId);
+//   console.log('New subscription:', currentActiveSubscriptionId);
+//   console.log('Product ID:', productId);
+//   console.log('Price ID:', priceId);
+  
+//   const stripeSessionData = {
+//     sessionId,
+//     tenantId,
+//     customerId,
+//     currentActiveSubscriptionId,
+//     productId,
+//     priceId,
+//     subscriptionStatus,
+//   };
+
+//   const stripeSubscriptionModel = StripeSubscription.getModel(tenantsConnection);
+  
+//   // Find any existing active subscription for this tenant
+//   const tenantActiveSubscriptionInfo = await stripeSubscriptionModel.findOne({
+//     tenant: new mongoose.Types.ObjectId(tenantId),
+//     stripeSubscriptionStatus: { $in: ['active', 'trialing'] },
+//   });
+  
+//   // If there's an existing subscription, cancel it
+//   if (tenantActiveSubscriptionInfo) {
+//     console.log('Canceling existing subscription:', tenantActiveSubscriptionInfo.stripeSubscriptionId);
+//     try {
+//       await getStripe().subscriptions.cancel(tenantActiveSubscriptionInfo.stripeSubscriptionId);
+//       await stripeSubscriptionModel.findOneAndUpdate(
+//         { stripeSubscriptionId: tenantActiveSubscriptionInfo.stripeSubscriptionId },
+//         {
+//           stripeSubscriptionStatus: 'canceled',
+//           updatedAt: new Date(),
+//         },
+//       );
+//     } catch (error: any) {
+//       console.log('Error canceling subscription (might be free plan):', error);
+//     }
+//   }
+  
+//   // Create the new subscription record
+//   await saveStripeCheckoutData(tenantsConnection, stripeSessionData);
+  
+//   console.log('Subscription upgrade completed for tenant:', tenantId);
+// };
+
 const moveUserToFreePlan = async (
   tenantsConnection: Mongoose,
   tenantId: string,
@@ -527,13 +588,16 @@ export const listenStripeWebhook = async (
   event: Stripe.Event,
   payloadString: string,
 ) => {
+  console.log('listenStripeWebhook', tenantId, event.type);
   const secret = stripeConfig.stripeWebhookSecretKey;
+  console.log('secret', secret);
   const header = getStripe().webhooks.generateTestHeaderString({
     payload: payloadString,
     secret,
   });
   const constructEvent = getStripe().webhooks.constructEvent(payloadString, header, secret);
   if (constructEvent.type === 'checkout.session.completed') {
+    console.log('checkout.session.completed');
     await handleCheckoutSessionCompleted(tenantId, tenantsConnection, event);
   }
   if (constructEvent.type === 'customer.subscription.updated') {
