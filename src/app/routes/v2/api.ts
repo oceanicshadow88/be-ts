@@ -420,16 +420,16 @@ router.get('/export-project/fields', exportController.exportTicketFields);
 router.get('/export-project/:projectId/tickets', exportController.exportTicketsCsv);
 // dashboard
 router.get('/projects/:projectId/dashboards', dashboardValidations.show, dashboardController.show);
-router.get(
-  '/projects/:projectId/dashboards/dailyScrums',
-  dashboardValidations.showDailyScrums,
-  dashboardController.showDailyScrums,
-);
-router.get(
-  '/projects/:projectId/dashboards/reports',
-  dashboardValidations.generatePDF,
-  dashboardController.generatePDF,
-);
+// router.get(
+//   '/projects/:projectId/dashboards/dailyScrums',
+//   dashboardValidations.showDailyScrums,
+//   dashboardController.showDailyScrums,
+// );
+// router.get(
+//   '/projects/:projectId/dashboards/reports',
+//   dashboardValidations.generatePDF,
+//   dashboardController.generatePDF,
+// );
 
 router.get('/temp/projects/:projectId/import', projectsController.tempImport);
 
