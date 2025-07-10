@@ -50,7 +50,7 @@ export const createSubscription = async (
     metadata: {tenantId: activeTenant}
   });
 
-  const newSubscription = await stripeSubscription.findOneAndUpdate(
+  await stripeSubscription.findOneAndUpdate(
     { tenant: activeTenant },
     {
       stripeSubscriptionId: subscription.id,
@@ -63,7 +63,7 @@ export const createSubscription = async (
   );
 
   const tenant = tenantModel.getModel(tenantsConnection);
-  const updatedTenant = await tenant.findByIdAndUpdate(
+  await tenant.findByIdAndUpdate(
     activeTenant, {
       plan: 'Free',
       email: email,
