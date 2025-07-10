@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 export const tools: Anthropic.Tool[] = [
   {
-    name: 'generate_feature_spec_template',
+    name: 'optimizeTicketDescription',
     description: '自动整理并生成标准化的功能需求模板，用于优化任务卡片说明',
     input_schema: {
       type: 'object',
@@ -88,20 +88,54 @@ export const tools: Anthropic.Tool[] = [
   },
 ];
 
-export const getSystemPrompt = (action: string): string => {
-  switch (action) {
-    case 'generate_feature_spec_template':
-      return '你是一个经验丰富的产品经理，请根据用户的需求，生成一个标准化的功能需求模板。';
-    default:
-      return '你是一个专业的AI助手，请根据用户的需求提供有用的帮助和建议。';
-  }
+const systemPrompt = {
+  optimizeTicketDescription: `你是一个严谨的结构化文档生成助手，还是一个经验丰富的BA，负责将用户输入的信息填充为一份标准的功能说明模板。
+              请遵循以下规则：
+              <规则>
+                - 对每个字段（如 INCLUDE/PASS TEST、URL/PAGE 等）都必须保留字段名，即使用户没有提供内容，也要显示该字段并填入"n/a"；
+                - 如果用户的输入中使用的是中文，请用中文回复；如果是英文，则用英文回复；若中英文混杂，则按照用户的语言风格混合输出；
+                - 每个字段下的内容尽量使用列表的形式简洁列出，若内容为描述性表达，也应保留其原始语言风格与细节；
+                - 如果用户对某些字段给出的内容不完全标准（如语气词、说明性、模糊表达），也要尽量理解其意图并如实记录在相应字段；
+                - 对于 Acceptance Criteria，必须将其结构化为包含 given / when / then / and 四个子字段的对象，并按顺序列出；
+                - 绝不遗漏字段结构，保证输出内容符合功能文档要求的完整格式。
+              </规则>
+              输出内容必须完全符合用户定义的字段结构，不得添加额外属性。字段名、结构、层级必须与调用时保持一致。`,
+  optimizeText: `You are an assistant helping users improve comments on task cards in a collaborative project management platform (like JIRA). 
+
+                Given a user comment, your job is to rewrite it in a way that is:
+
+                - Clear and easy to understand for teammates
+                - Grammatically correct and well-structured
+                - Respectful and professional in tone
+                - Focused on communicating the intent or concern clearly
+
+                Do not remove technical terms, but explain them if necessary. Keep the response short and focused, unless the original comment requires context expansion.
+
+                Return only the improved version of the comment. Do not include explanations or commentary.`,
 };
 
-export const getToolChoice = (action: string): Anthropic.ToolChoice => {
+
+export const getSystemPrompt = (action?: string): string => {
+  if (action && systemPrompt[action as keyof typeof systemPrompt]) {
+    return systemPrompt[action as keyof typeof systemPrompt];
+  }
+  return '你是一个专业的AI助手，请根据用户的需求提供有用的帮助和建议。';
+};
+
+export const getToolChoice = (action?: string): Anthropic.ToolChoice => {
   switch (action) {
-    case 'generate_feature_spec_template':
+    case 'optimizeTicketDescription':
       return { type: 'tool', name: action };
     default:
       return { type: 'auto' };
+  }
+}; 
+
+export const getTools = (action?: string): Anthropic.Tool[] => {
+  switch (action) {
+    case 'optimizeTicketDescription':
+      return tools;
+    default:
+      return [];
   }
 }; 

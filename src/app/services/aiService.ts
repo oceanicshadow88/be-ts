@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { CLAUDE_API_KEY, CLAUDE_MODEL } from '../config/claudeAi';
-import { tools, getSystemPrompt, getToolChoice } from '../utils/aiUtils';
+import { getSystemPrompt, getToolChoice, getTools } from '../utils/aiUtils';
 
 // 创建 Anthropic 客户端实例
 const anthropic = new Anthropic({
@@ -8,9 +8,6 @@ const anthropic = new Anthropic({
 });
 
 const optimizeTextByClaude = async (content: string, action: string): Promise<Anthropic.Message> => {
-  // 判断是否需要使用工具
-  const shouldUseTool = action === 'generate_feature_spec_template';
-  
   const messageParams: any = {
     model: CLAUDE_MODEL || 'claude-3-5-sonnet-20241022',
     max_tokens: 1000,
@@ -24,8 +21,8 @@ const optimizeTextByClaude = async (content: string, action: string): Promise<An
     ],
   };
 
-  // 只有在需要时才添加工具相关参数
-  if (shouldUseTool) {
+  const tools = getTools(action);
+  if (tools.length > 0) {
     messageParams.tools = tools;
     messageParams.tool_choice = getToolChoice(action);
   }
@@ -50,3 +47,4 @@ export const optimizeTextByClaudeWithRetry = async (content: string, action: str
   }
   throw new Error('Max retries exceeded');
 };
+
