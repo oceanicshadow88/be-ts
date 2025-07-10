@@ -57,10 +57,8 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     // create new Tenant
     tenantModel = await Tenant.getModel(req.tenantsConnection);
     newTenants = await tenantModel.create({ origin: tenantsUrl });
-    console.log('New tenant created:', newTenants);
 
   } catch (err) {
-    console.log('Tenant already exists:', tenantsUrl);
     return res.status(400).json({ status: 'fail', err });
   }
 
