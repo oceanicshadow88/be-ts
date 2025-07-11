@@ -14,17 +14,17 @@ const tenantModel = require('../model/tenants');
 export const createSubscription = async (
   tenantsConnection: any,
   activeTenant: string,
-  email: string
+  email: string,
 ) => {
   const stripePrice = stripePriceModel.getModel(tenantsConnection);
   const stripeProduct = stripeProductModel.getModel(tenantsConnection);
   const stripeSubscription = stripeSubscriptionModel.getModel(tenantsConnection);
 
   const freePlanProduct = await stripeProduct
-    .findOne({stripeProductName: 'Free'})
+    .findOne({ stripeProductName: 'Free' })
     .populate({
       path: 'stripePrices.monthly',
-      model: stripePrice
+      model: stripePrice,
     });
 
   if (!freePlanProduct) {
@@ -39,7 +39,7 @@ export const createSubscription = async (
     email: email,
     metadata: {
       tenantId: activeTenant,
-    }
+    },
   });
   
   const subscription = await getStripe().subscriptions.create({
@@ -47,7 +47,7 @@ export const createSubscription = async (
     items: [{
       price: freePlanProduct.stripePrices.monthly.stripePriceId,
     }],
-    metadata: {tenantId: activeTenant}
+    metadata: { tenantId: activeTenant },
   });
 
   await stripeSubscription.findOneAndUpdate(
@@ -59,7 +59,7 @@ export const createSubscription = async (
       stripeProductId: freePlanProduct.stripeProductId,
       stripeSubscriptionStatus: subscription.status,
     },
-    { upsert: true, new: true }
+    { upsert: true, new: true },
   );
 
   const tenant = tenantModel.getModel(tenantsConnection);
@@ -71,12 +71,12 @@ export const createSubscription = async (
         tenantTrialHistory: {
           productId: freePlanProduct.stripeProductId,
           priceIds: [freePlanProduct.stripePrices.monthly.stripePriceId],
-        }
-      }
+        },
+      },
     },
-    { new: true }
+    { new: true },
   );
-}
+};
 
 export const emailRegister = async (
   resUserDbConnection: any,

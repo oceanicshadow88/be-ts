@@ -99,7 +99,6 @@ export const store = asyncHandler(async (req: Request, res: Response) => {
     const tenantModel = await Tenant.getModel(req.tenantsConnection);
 
     await createSubscription(req.tenantsConnection, activeTenant, email);
-
     await tenantModel.findByIdAndUpdate(activeTenant, { active: true });
     res.send({ user });
   } catch (err) {
