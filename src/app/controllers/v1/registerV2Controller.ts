@@ -98,11 +98,7 @@ export const store = asyncHandler(async (req: Request, res: Response) => {
     const activeTenant = user.tenants.at(-1);
     const tenantModel = await Tenant.getModel(req.tenantsConnection);
 
-    try {
-      await createSubscription(req.tenantsConnection, activeTenant, email);
-    } catch (subscriptionError) {
-      console.error('Subscription creation failed:', subscriptionError);
-    }
+    await createSubscription(req.tenantsConnection, activeTenant, email);
 
     await tenantModel.findByIdAndUpdate(activeTenant, { active: true });
     res.send({ user });
