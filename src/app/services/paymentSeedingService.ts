@@ -7,7 +7,11 @@ import {
   ISeedPriceInfo,
   ISeedProduct,
 } from '../database/seeders/paymentSeeder';
+import * as User from '../model/user';
+import * as Tenant from '../model/tenants';
 import * as StripeProduct from '../model/stripeProduct';
+import * as StripeSubscription from '../model/stripeSubscription';
+import { getFreePlanPriceId, getFreePlanProductId } from './stripeService';
 import { getStripe } from '../lib/stripe';
 
 interface PriceInfo {
@@ -114,4 +118,59 @@ const processProduct = async (tenantsConnection: Mongoose) => {
   }
 };
 
-export { processProduct };
+const processSubscription = async (tenantsConnection: Mongoose) => {
+  const userModel = User.getModel(tenantsConnection);
+  const tenantModel = Tenant.getModel(tenantsConnection);
+  const stripeSubscriptionModel = StripeSubscription.getModel(tenantsConnection);
+  const freePlanPriceId = await getFreePlanPriceId(tenantsConnection);
+  const freePlanProductId = await getFreePlanProductId(tenantsConnection);
+  const tenants = await tenantModel.find()
+    .populate({
+      path: 'owner',
+      model: userModel,
+      select: 'email',
+    });
+
+  for (const tenant of tenants) {
+    if (!tenant.owner) {
+      throw new Error(`Tenant ${tenant._id} does not have an owner.`);
+    }
+    const tenantSubscription = await stripeSubscriptionModel.findOne({ tenant: tenant._id });
+    if (tenantSubscription) continue;
+    
+    const customerInfo = await getStripe().customers.create({
+      email: tenant.owner.email,
+      metadata: { tenantId: tenant.id },
+    });
+    const stripeCustomerId = customerInfo.id;
+    const subscriptionInfo = await getStripe().subscriptions.create({
+      customer: stripeCustomerId,
+      items: [{ price: freePlanPriceId }],
+      metadata: { tenantId: tenant.id },
+    });
+    const stripeSubscriptionId = subscriptionInfo.id;
+    const stripeSubscriptionStatus = subscriptionInfo.status;
+    await stripeSubscriptionModel.findOneAndUpdate(
+      { tenant: tenant._id },
+      {
+        stripeCustomerId: stripeCustomerId,
+        stripeSubscriptionId: stripeSubscriptionId,
+        stripePriceId: freePlanPriceId,
+        stripeProductId: freePlanProductId,
+        stripeSubscriptionStatus: stripeSubscriptionStatus,
+      },
+      { upsert: true, new: true },
+    );
+
+    await tenantModel.findByIdAndUpdate(tenant._id, {
+      tenantTrialHistory: [
+        {
+          productId: freePlanProductId,
+          priceIds: [freePlanPriceId],
+        },
+      ],
+    });
+  }   
+};
+
+export { processProduct, processSubscription };

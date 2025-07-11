@@ -20,7 +20,8 @@ export const getCurrentPlanId = asyncHandler(async (req: Request, res: Response)
 
 export const isCurrentPlanFree = asyncHandler(async (req: Request, res: Response) => {
   const tenantId = req.tenantId;
-  const isFreePlan = await stripeService.isCurrentPlanFree(tenantId);
+  const tenantsConnection = req.tenantsConnection;
+  const isFreePlan = await stripeService.isCurrentPlanFree(tenantId, tenantsConnection);
   res.status(200).json(isFreePlan);
 });
 
@@ -66,6 +67,6 @@ export const listenStripeWebhook = asyncHandler(async (req: Request, res: Respon
   const event = req.body;
   const payloadString = JSON.stringify(req.body).toString();
   const tenantId = req.tenantId;
-  stripeService.listenStripeWebhook(tenantId, req.tenantsConnection, event, payloadString);
+  await stripeService.listenStripeWebhook(tenantId, req.tenantsConnection, event, payloadString);
   res.sendStatus(200);
 });

@@ -183,9 +183,8 @@ export const getCurrentPlanId = async (tenantId: string, tenantsConnection: Mong
   return stripeProductId;
 };
 
-export const getFreePlanPriceId = async () => {
+export const getFreePlanPriceId = async (tenantsConnection: Mongoose) => {
   const FREE_PLAN = 'Free';
-  const tenantsConnection = await tenantsDBConnection();
   const stripePriceModel = StripePrice.getModel(tenantsConnection);
   const stripeProductModel = StripeProduct.getModel(tenantsConnection);
   const freePlanProduct = await stripeProductModel
@@ -203,9 +202,8 @@ export const getFreePlanPriceId = async () => {
   return freePlanPriceId;
 };
 
-export const getFreePlanProductId = async () => {
+export const getFreePlanProductId = async (tenantsConnection: Mongoose) => {
   const FREE_PLAN = 'Free';
-  const tenantsConnection = await tenantsDBConnection();
   const stripeProductModel = StripeProduct.getModel(tenantsConnection);
   const freePlanProduct = await stripeProductModel.findOne({ stripeProductName: FREE_PLAN });
   if (!freePlanProduct) {
@@ -216,17 +214,17 @@ export const getFreePlanProductId = async () => {
   return freePlanProductId;
 };
 
-export const isCurrentPlanFree = async (tenantId: string) => {
+export const isCurrentPlanFree = async (tenantId: string, tenantsConnection: Mongoose) => {
   if (tenantId === '') {
     winstonLogger.error('stripeService: Missing tenant Id');
     throw new Error('TenantId is not found');
   }
-  const tenantsConnection = await tenantsDBConnection();
+
   const stripeSubscriptionModel = StripeSubscription.getModel(tenantsConnection);
   const tenantSubscriptionInfo = await stripeSubscriptionModel.findOne({
     tenant: new mongoose.Types.ObjectId(tenantId),
   });
-  const freePlanPriceId = await getFreePlanPriceId();
+  const freePlanPriceId = await getFreePlanPriceId(tenantsConnection);
   if (!tenantSubscriptionInfo) {
     winstonLogger.error('stripeService: Missing tenant subscription info');
     throw new Error('tenant subscription info not found');
@@ -417,8 +415,8 @@ const moveUserToFreePlan = async (
   subscriptionId: string,
   customerId: string,
 ) => {
-  const freePlanProductId = await getFreePlanProductId();
-  const freePlanPriceId = await getFreePlanPriceId();
+  const freePlanProductId = await getFreePlanProductId(tenantsConnection);
+  const freePlanPriceId = await getFreePlanPriceId(tenantsConnection);
 
   await getStripe().subscriptions.update(subscriptionId, {
     items: [{
@@ -514,7 +512,6 @@ const handleSubscriptionUpdated = async (
   if (previousSubscriptionAttributes.hasOwnProperty('items')) {
     await updateSubscriptionPlan(tenantsConnection, tenantId, stripeSubscriptionData);
   }
-
   // case 2: Free trial ended (status changes from trialing to something else)
   if (
     previousSubscriptionAttributes.hasOwnProperty('status') &&
@@ -537,10 +534,10 @@ export const listenStripeWebhook = async (
   });
   const constructEvent = getStripe().webhooks.constructEvent(payloadString, header, secret);
   if (constructEvent.type === 'checkout.session.completed') {
-    handleCheckoutSessionCompleted(tenantId, tenantsConnection, event);
+    await handleCheckoutSessionCompleted(tenantId, tenantsConnection, event);
   }
   if (constructEvent.type === 'customer.subscription.updated') {
-    handleSubscriptionUpdated(tenantId, tenantsConnection, event);
+    await handleSubscriptionUpdated(tenantId, tenantsConnection, event);
   }
 };
 
