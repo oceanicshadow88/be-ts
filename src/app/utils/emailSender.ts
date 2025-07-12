@@ -1,15 +1,8 @@
 import { invalidSubdomains } from '../controllers/v1/registerV2Controller';
-
-const aws = require('aws-sdk');
+import { SES } from '@aws-sdk/client-ses';
 import config from '../config/app';
 import { winstonLogger } from '../../loaders/logger';
 import awsConfig from '../config/aws';
-
-aws.config.update({
-  region: awsConfig.awsRegion,
-  accessKeyId: awsConfig.awsAccessKey,
-  secretAccessKey: awsConfig.awsSecretKey,
-});
 
 function cb(email_err: any, email_data: any): void {
   if (email_err) {
@@ -25,7 +18,7 @@ const emailSenderTemplate = (
   templateName: string,
   callback: (email_err: any, email_data: any) => void,
 ) => {
-  const ses = new aws.SES();
+  const ses = new SES(awsConfig);
 
   const destination = {
     ToAddresses: [email],
@@ -69,7 +62,7 @@ export const emailRecipientTemplate = (
   data: {},
   templateName: string,
 ) => {
-  const ses = new aws.SES();
+  const ses = new SES(awsConfig);
 
   let params = {
     Source: emailFrom,
@@ -80,7 +73,7 @@ export const emailRecipientTemplate = (
     TemplateData: JSON.stringify(data),
   };
 
-  return ses.sendTemplatedEmail(params).promise();
+  return ses.sendTemplatedEmail(params);
 };
 
 export const emailSender = (email: string, validationCode: string, domain: string = '') => {
