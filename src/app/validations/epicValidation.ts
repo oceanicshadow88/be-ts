@@ -19,12 +19,12 @@ const baseValidations = [
     .trim(),
     
   body('startDate')
-    .optional()
+    .optional({ checkFalsy: true })
     .isISO8601()
     .withMessage('Start date must be a valid ISO 8601 date'),
     
   body('dueAt')
-    .optional()
+    .optional({ checkFalsy: true })
     .isISO8601()
     .withMessage('Due date must be a valid ISO 8601 date'),
     

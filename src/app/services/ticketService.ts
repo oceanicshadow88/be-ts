@@ -10,6 +10,7 @@ import * as Project from '../model/project';
 import * as Epic from '../model/epic';
 import { ActivityType, IChange, ITicket, ITicketDocument } from '../types';
 import mongoose, { Mongoose, Types } from 'mongoose';
+import { generateNKeysBetween } from '../utils/generateRank';
 
 /** Find tickets with given filters
  * @param dbConnection Mongoose
@@ -59,8 +60,11 @@ export const findTickets = async (
         path: 'comments',
         model: commentModel,
       })
-      .populate({ path: 'project', model: projectModel })
-      .sort({ createdAt: 1 });
+      .populate({
+        path: 'project',
+        model: projectModel,
+      })
+      .sort({ rank: 1 });
 
     const activeTickets = tickets.filter((e: ITicket) => e.isActive === true);
 
@@ -101,6 +105,57 @@ export const createTicket = async (req: Request) => {
   const result = await findTickets(req.dbConnection, req.tenantsConnection, { _id: ticket._id });
   return result[0];
 };
+
+export const migrateTicketRanks = async (req: Request) => {
+  try {
+    const { projectId } = req.body;
+    
+    const ticketModel = await Ticket.getModel(req.dbConnection);
+
+    const ticketsWithoutRanks = await ticketModel.find({ 
+      project: projectId, 
+      rank: { $in: [null, undefined, ''] }
+    }).sort({ createdAt: 1 });
+    
+    const groupedTickets: { [key: string]: typeof ticketsWithoutRanks } = {};
+    ticketsWithoutRanks.forEach((ticket: any) => {
+      const key = ticket.sprint || 'backlog';
+      if (!groupedTickets[key]) {
+        groupedTickets[key] = [];
+      }
+      groupedTickets[key].push(ticket);
+    });
+    
+    const updates: { ticketId: string; rank: string }[] = [];
+    Object.entries(groupedTickets).forEach(([sprintId, tickets]) => {
+      const ticketsArray = tickets as any[];
+      const newRanks = generateNKeysBetween(null, null, ticketsArray.length);
+      
+      ticketsArray.forEach((ticket, index) => {
+        updates.push({
+          ticketId: ticket.id,
+          rank: newRanks[index]
+        });
+      });
+    });
+    
+    if (updates.length > 0) {
+      const updatePromises = updates.map(({ ticketId, rank }) => 
+        ticketModel.findByIdAndUpdate(ticketId, { rank })
+      );
+      await Promise.all(updatePromises);
+    }
+    
+    return {
+      success: true,
+      message: `Migrated ranks for ${updates.length} tickets`,
+      updatedCount: updates.length
+    };
+    
+  } catch (error) {
+    throw error;
+  }
+}
 
 const comparePrimitives = (
   field: string,
@@ -301,9 +356,9 @@ export const getTicketsByProject = async (req: Request) => {
 };
 
 export const getTicketsByEpic = async (req: Request) => {
-  const { epicId } = req.params;
+  const { id } = req.params;
   const tickets = await Ticket.getModel(req.dbConnection)
-    .find({ epic: epicId })
+    .find({ epic: id })
     .populate({
       path: 'epic',
       model: Epic.getModel(req.dbConnection),
@@ -315,4 +370,133 @@ export const getTicketsByEpic = async (req: Request) => {
 
 export const getShowTicket = (req: Request) => {
   return findTickets(req.dbConnection, req.tenantsConnection, { _id: req.params.id });
+};
+
+export const getSummaryByProjectId = async (
+  projectId: string,
+  dbConnection: Mongoose,
+  summaryBy: 'type' | 'status',
+) => {
+  const SprintModel = await Sprint.getModel(dbConnection);
+  const currentSprints = await SprintModel.findLatestSprints(projectId);
+  const latestSprints = currentSprints[0];
+
+  if (!currentSprints || currentSprints.length === 0) return [];
+
+  const field = summaryBy;
+  const collection = summaryBy === 'status' ? 'statuses' : 'types';
+
+  const groupedSummary = await Ticket.getModel(dbConnection).aggregate([
+    {
+      $match: {
+        project: new mongoose.Types.ObjectId(projectId),
+        sprint: new mongoose.Types.ObjectId(latestSprints.id),
+      },
+    },
+    {
+      $group: {
+        _id: `$${field}`,
+        total: { $sum: 1 },
+      },
+    },
+    {
+      $lookup: {
+        from: collection,
+        localField: '_id',
+        foreignField: '_id',
+        as: 'info',
+      },
+    },
+    { $unwind: '$info' },
+    {
+      $project: {
+        _id: 0,
+        name: '$info.slug',
+        total: 1,
+      },
+    },
+  ]);
+  return groupedSummary;
+};
+
+export const getStatusSummaryGroupedByEpic = async (projectId: string, dbConnection: Mongoose) => {
+  const groupedStatusSummary = await Ticket.getModel(dbConnection).aggregate([
+    {
+      $match: {
+        project: new mongoose.Types.ObjectId(projectId),
+        epic: { $ne: null },
+      },
+    },
+    {
+      $lookup: {
+        from: 'statuses',
+        localField: 'status',
+        foreignField: '_id',
+        as: 'status',
+      },
+    },
+    {
+      $lookup: {
+        from: 'epics',
+        localField: 'epic',
+        foreignField: '_id',
+        as: 'epic',
+      },
+    },
+    {
+      $unwind: {
+        path: '$status',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $unwind: {
+        path: '$epic',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        epicId: '$epic._id',
+        epicTitle: '$epic.title',
+        status: { $ifNull: ['$status.slug', 'backlog'] },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          epicId: '$epicId',
+          epicTitle: '$epicTitle',
+          status: '$status',
+        },
+        count: { $sum: 1 },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          epicId: '$_id.epicId',
+          epicTitle: '$_id.epicTitle',
+        },
+        totalTicket: { $sum: '$count' },
+        statusSummary: {
+          $push: {
+            status: '$_id.status',
+            count: '$count',
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        epicId: '$_id.epicId',
+        epicTitle: '$_id.epicTitle',
+        totalTicket: 1,
+        statusSummary: 1,
+      },
+    },
+  ]);
+  return groupedStatusSummary;
 };

@@ -4,6 +4,79 @@ import { winstonLogger } from '../../loaders/logger';
 import mongoose from 'mongoose';
 import * as User from '../model/user';
 import config from '../config/app';
+import { getStripe } from '../lib/stripe';
+
+const stripeProductModel = require('../model/stripeProduct');
+const stripePriceModel = require('../model/stripePrice');
+const stripeSubscriptionModel = require('../model/stripeSubscription');
+const tenantModel = require('../model/tenants');
+
+export const createSubscription = async (
+  tenantsConnection: any,
+  activeTenant: string,
+  email: string,
+) => {
+  const stripePrice = stripePriceModel.getModel(tenantsConnection);
+  const stripeProduct = stripeProductModel.getModel(tenantsConnection);
+  const stripeSubscription = stripeSubscriptionModel.getModel(tenantsConnection);
+
+  const freePlanProduct = await stripeProduct
+    .findOne({ stripeProductName: 'Free' })
+    .populate({
+      path: 'stripePrices.monthly',
+      model: stripePrice,
+    });
+
+  if (!freePlanProduct) {
+    throw new Error('Free plan is not found');
+  }
+
+  if (!freePlanProduct.stripePrices?.monthly) {
+    throw new Error('Free plan monthly price is not found');
+  }
+
+  const stripeCustomer = await getStripe().customers.create({
+    email: email,
+    metadata: {
+      tenantId: activeTenant,
+    },
+  });
+  
+  const subscription = await getStripe().subscriptions.create({
+    customer: stripeCustomer.id,
+    items: [{
+      price: freePlanProduct.stripePrices.monthly.stripePriceId,
+    }],
+    metadata: { tenantId: activeTenant },
+  });
+
+  await stripeSubscription.findOneAndUpdate(
+    { tenant: activeTenant },
+    {
+      stripeSubscriptionId: subscription.id,
+      stripeCustomerId: stripeCustomer.id,
+      stripePriceId: freePlanProduct.stripePrices.monthly.stripePriceId,
+      stripeProductId: freePlanProduct.stripeProductId,
+      stripeSubscriptionStatus: subscription.status,
+    },
+    { upsert: true, new: true },
+  );
+
+  const tenant = tenantModel.getModel(tenantsConnection);
+  await tenant.findByIdAndUpdate(
+    activeTenant, {
+      plan: 'Free',
+      email: email,
+      $addToSet: {
+        tenantTrialHistory: {
+          productId: freePlanProduct.stripeProductId,
+          priceIds: [freePlanProduct.stripePrices.monthly.stripePriceId],
+        },
+      },
+    },
+    { new: true },
+  );
+};
 
 export const emailRegister = async (
   resUserDbConnection: any,

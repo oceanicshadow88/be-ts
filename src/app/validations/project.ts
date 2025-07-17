@@ -1,6 +1,7 @@
 const { param, check } = require('express-validator');
 
 const show = [param('id').notEmpty().isString()];
+
 const store = [
   check('name', 'Name Empty').notEmpty(),
   check('key', 'Key Empty').notEmpty(),

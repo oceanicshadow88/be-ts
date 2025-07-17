@@ -78,7 +78,7 @@ export default class EpicBuilder extends BaseBuilder {
     return {
       title: 'Epic Title',
       project: project._id,
-      tenant: db.tenantId,
+      tenant: db.defaultTenant._id,
     };
   }
 

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
-import { generatePDFByProject, showDailyScrumsByProject } from '../../services/dailyScrumService';
+// import { generatePDFByProject, showDailyScrumsByProject } from '../../services/dailyScrumService';
 import logger from 'winston';
 import status from 'http-status';
 import { showDashboard } from '../../services/dashboardService';
@@ -16,24 +16,24 @@ export const show = async (req: Request, res: Response) => {
   return res.send(replaceId(result));
 };
 
-export const showDailyScrums = async (req: Request, res: Response) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    logger.error(errors);
-    return res.sendStatus(status.UNPROCESSABLE_ENTITY);
-  }
+// export const showDailyScrums = async (req: Request, res: Response) => {
+//   const errors = validationResult(req);
+//   if (!errors.isEmpty()) {
+//     logger.error(errors);
+//     return res.sendStatus(status.UNPROCESSABLE_ENTITY);
+//   }
 
-  const result = showDailyScrumsByProject(req);
-  return res.send(result);
-};
+//   const result = showDailyScrumsByProject(req);
+//   return res.send(result);
+// };
 
-export const generatePDF = async (req: Request, res: Response) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    logger.error(errors);
-    return res.sendStatus(status.UNPROCESSABLE_ENTITY);
-  }
+// export const generatePDF = async (req: Request, res: Response) => {
+//   const errors = validationResult(req);
+//   if (!errors.isEmpty()) {
+//     logger.error(errors);
+//     return res.sendStatus(status.UNPROCESSABLE_ENTITY);
+//   }
 
-  const result = await generatePDFByProject(req);
-  return res.send(result);
-};
+//   const result = await generatePDFByProject(req);
+//   return res.send(result);
+// };
