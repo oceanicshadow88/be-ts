@@ -8,8 +8,8 @@ import * as Tenant from '../../src/app/model/tenants';
 import {
   StripePriceBuilder,
   StripeProductBuilder, 
-  StripeSubscriptionBuilder
- } from './builders/stripeBuilder';
+  StripeSubscriptionBuilder,
+} from './builders/stripeBuilder';
 import { describe } from 'node:test';
 
 describe('Stripe Webhook tests', () => {
@@ -75,18 +75,18 @@ describe('Stripe Webhook tests', () => {
           id: subscriptionId,
           status: 'canceled',
         }),
-      }
+      },
     });
 
     const res = await request(app.application)
       .post('/api/v2/webhook')
-      .send(event)
+      .send(event);
 
     expect(res.statusCode).toBe(200);
     
     // Check if the original subscription is canceled
     const canceledSubscription = await stripeSubscriptionModel.findOne({
-      stripeSubscriptionId: originSubscription.stripeSubscriptionId
+      stripeSubscriptionId: originSubscription.stripeSubscriptionId,
     });
     expect(canceledSubscription).not.toBeNull();
     expect(canceledSubscription.stripeSubscriptionStatus).toBe('canceled');
@@ -152,7 +152,7 @@ describe('Stripe Webhook tests', () => {
           items: 'test',
         },
       },
-    }
+    };
 
     jest.spyOn(stripeLib, 'getStripe').mockReturnValue({
       webhooks: {
@@ -163,7 +163,7 @@ describe('Stripe Webhook tests', () => {
       },
       subscriptions: {
         update: jest.fn().mockResolvedValue({}),
-      }
+      },
     });
 
     const res = await request(app.application)
@@ -231,7 +231,7 @@ describe('Stripe Webhook tests', () => {
       },
       subscriptions: {
         update: jest.fn().mockResolvedValue({}),
-      }
+      },
     });
 
     const res = await request(app.application)
@@ -330,7 +330,7 @@ describe('Stripe API tests', () => {
       .save();
 
     const res = await request(app.application)
-      .get('/api/v2/payment/isCurrentPlanFree')
+      .get('/api/v2/payment/isCurrentPlanFree');
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toBe(stripePrice.subscriptionAmount === 0);
@@ -374,7 +374,7 @@ describe('Stripe API tests', () => {
     const stripePrice = await new StripePriceBuilder().save();
 
     const res = await request(app.application)
-      .get(`/api/v2/payment/priceInfo/${stripePrice._id}`)
+      .get(`/api/v2/payment/priceInfo/${stripePrice._id}`);
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty('stripePriceId', stripePrice.stripePriceId);
@@ -391,7 +391,7 @@ describe('Stripe API tests', () => {
     const stripeProducts = await Promise.all(productsInfo.map(productId =>
       new StripeProductBuilder()
         .withStripeProductId(productId)
-        .save()
+        .save(),
     ));
 
     const res = await request(app.application)
