@@ -36,26 +36,26 @@ describe('Types Test', () => {
           .withSlug(typeData.slug)
           .withIcon(typeData.icon)
           .save();
-      })
+      }),
     );
 
     const res = await request(app.application)
       .get('/api/v2/types')
       .expect(httpStatus.OK);
     
-      expect(res.body).toHaveLength(4);
+    expect(res.body).toHaveLength(4);
 
-      const actualTypeNames = res.body.map((type) => type.name);
-      const actualTypeSlugs = res.body.map((type) => type.slug);
-      const actualTypeIcons = res.body.map((type) => type.icon);
+    const actualTypeNames = res.body.map((type) => type.name);
+    const actualTypeSlugs = res.body.map((type) => type.slug);
+    const actualTypeIcons = res.body.map((type) => type.icon);
 
-      expectedTypes.forEach(async (type) => {
-        expect(actualTypeNames).toContain(type.name);
-        expect(actualTypeSlugs).toContain(type.slug);
-        expect(actualTypeIcons).toContain(type.icon);
+    expectedTypes.forEach(async (type) => {
+      expect(actualTypeNames).toContain(type.name);
+      expect(actualTypeSlugs).toContain(type.slug);
+      expect(actualTypeIcons).toContain(type.icon);
 
-        const response = await axios.get(type.icon);
-        expect(response.status).toBe(httpStatus.OK);
-      });
+      const response = await axios.get(type.icon);
+      expect(response.status).toBe(httpStatus.OK);
+    });
   });
 });

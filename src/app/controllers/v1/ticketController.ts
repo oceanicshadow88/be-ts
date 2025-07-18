@@ -10,7 +10,7 @@ import {
   updateTicket,
   getSummaryByProjectId,
   getStatusSummaryGroupedByEpic,
-  migrateTicketRanks
+  migrateTicketRanks,
 } from '../../services/ticketService';
 import { asyncHandler } from '../../utils/helper';
 

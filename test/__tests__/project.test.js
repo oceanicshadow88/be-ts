@@ -82,7 +82,7 @@ describe('Project Test', () => {
           updatedAt: expect.any(String),
         }),
         retroBoards: [],
-      })
+      }),
     );
   });
 

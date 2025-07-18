@@ -1,4 +1,5 @@
-export const BASE_62_DIGITS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+// eslint-disable-next-line no-secrets/no-secrets
+const BASE62 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
 export function getIntegerLength(head: string): number {
   if (head >= 'a' && head <= 'z') {
@@ -133,7 +134,7 @@ export function decrementInteger(x: string, digits: string): string | null {
 export function generateKeyBetween(
   a: string | null | undefined,
   b: string | null | undefined,
-  digits = BASE_62_DIGITS
+  digits = BASE62,
 ): string {
   if (a != null) {
     validateOrderKey(a, digits);
@@ -192,7 +193,7 @@ export function generateNKeysBetween(
   a: string | null | undefined,
   b: string | null | undefined,
   n: number,
-  digits = BASE_62_DIGITS
+  digits = BASE62,
 ): string[] {
   if (n === 0) {
     return [];
@@ -224,7 +225,7 @@ export function generateNKeysBetween(
   return [
     ...generateNKeysBetween(a, c, mid, digits),
     c,
-    ...generateNKeysBetween(c, b, n - mid - 1, digits)
+    ...generateNKeysBetween(c, b, n - mid - 1, digits),
   ];
 }
 
