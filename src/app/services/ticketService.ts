@@ -260,8 +260,7 @@ const getDiffBetweenTickets = (
 
 export const updateTicket = async (req: Request) => {
   const { id } = req.params;
-  const { sprintId, ...restBody } = req.body;
-  restBody.sprint = sprintId;
+  const fieldsToUpdate = { ...req.body };
   const TicketModel = Ticket.getModel(req.dbConnection);
   const UserModel = User.getModel(req.tenantsConnection);
 
@@ -276,7 +275,7 @@ export const updateTicket = async (req: Request) => {
 
   if (!previousTicket) return null;
 
-  const updatedTicket = await TicketModel.findByIdAndUpdate(id, restBody, {
+  const updatedTicket = await TicketModel.findByIdAndUpdate(id, fieldsToUpdate, {
     new: true,
     runValidators: true,
   })
