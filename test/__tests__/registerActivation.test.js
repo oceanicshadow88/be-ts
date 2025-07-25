@@ -13,14 +13,14 @@ describe('Register Activation - store (Account Activation)', () => {
   beforeEach(async () => {
     jest.spyOn(stripeLib, 'getStripe').mockReturnValue({
       customers: {
-        create: jest.fn().mockResolvedValue({ id: 'cus_test_123' })
+        create: jest.fn().mockResolvedValue({ id: 'cus_test_123' }),
       },
       subscriptions: {
         create: jest.fn().mockResolvedValue({ 
           id: 'sub_test_123', 
-          status: 'active' 
-        })
-      }
+          status: 'active', 
+        }),
+      },
     });
   });
 
@@ -62,7 +62,7 @@ describe('Register Activation - store (Account Activation)', () => {
     const requestBody = {
       email: 'test@example.com',
       name: 'Test User',
-      password: 'newPassword123'
+      password: 'newPassword123',
     };
 
     const response = await request(app.application)
@@ -90,7 +90,7 @@ describe('Register Activation - store (Account Activation)', () => {
     expect(String(subscriptionCall.metadata.tenantId)).toBe(String(testTenant._id));
 
     const savedSubscription = await getStripeSubscriptionModel(db.tenantsConnection).findOne({
-      tenant: testTenant._id
+      tenant: testTenant._id,
     });
     expect(savedSubscription).not.toBeNull();
     expect(savedSubscription.stripeSubscriptionId).toBe('sub_test_123');
@@ -157,17 +157,17 @@ describe('Register Activation - store (Account Activation)', () => {
       .send({
         email: 'test-upsert@example.com',
         name: 'Test User',
-        password: 'newPassword123'
+        password: 'newPassword123',
       })
       .expect(200);
 
     const subscriptionCount = await getStripeSubscriptionModel(db.tenantsConnection).countDocuments({
-      tenant: testTenant._id
+      tenant: testTenant._id,
     });
     expect(subscriptionCount).toBe(1);
 
     const updatedSubscription = await getStripeSubscriptionModel(db.tenantsConnection).findOne({
-      tenant: testTenant._id
+      tenant: testTenant._id,
     });
     expect(updatedSubscription.stripeSubscriptionId).toBe('sub_test_123');
     expect(updatedSubscription.stripeCustomerId).toBe('cus_test_123');
@@ -197,7 +197,7 @@ describe('Register Activation - store (Account Activation)', () => {
       .send({
         email: 'test-no-product@example.com',
         name: 'Test User',
-        password: 'newPassword123'
+        password: 'newPassword123',
       })
       .expect(500);
 
@@ -261,7 +261,7 @@ describe('Register Activation - store (Account Activation)', () => {
     const requestBody = {
       email: 'test-failure@example.com',
       name: 'Test User',
-      password: 'newPassword123'
+      password: 'newPassword123',
     };
 
     const response = await request(app.application)

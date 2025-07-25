@@ -109,14 +109,16 @@ export const createTicket = async (req: Request) => {
 export const migrateTicketRanks = async (req: Request) => {
   try {
     const { projectId } = req.body;
-    
+
     const ticketModel = await Ticket.getModel(req.dbConnection);
 
-    const ticketsWithoutRanks = await ticketModel.find({ 
-      project: projectId, 
-      rank: { $in: [null, undefined, ''] },
-    }).sort({ createdAt: 1 });
-    
+    const ticketsWithoutRanks = await ticketModel
+      .find({
+        project: projectId,
+        rank: { $in: [null, undefined, ''] },
+      })
+      .sort({ createdAt: 1 });
+
     const groupedTickets: { [key: string]: typeof ticketsWithoutRanks } = {};
     ticketsWithoutRanks.forEach((ticket: any) => {
       const key = ticket.sprint || 'backlog';
@@ -125,12 +127,12 @@ export const migrateTicketRanks = async (req: Request) => {
       }
       groupedTickets[key].push(ticket);
     });
-    
+
     const updates: { ticketId: string; rank: string }[] = [];
     Object.entries(groupedTickets).forEach(([, tickets]) => {
       const ticketsArray = tickets as any[];
       const newRanks = generateNKeysBetween(null, null, ticketsArray.length);
-      
+
       ticketsArray.forEach((ticket, index) => {
         updates.push({
           ticketId: ticket.id,
@@ -138,20 +140,19 @@ export const migrateTicketRanks = async (req: Request) => {
         });
       });
     });
-    
+
     if (updates.length > 0) {
-      const updatePromises = updates.map(({ ticketId, rank }) => 
+      const updatePromises = updates.map(({ ticketId, rank }) =>
         ticketModel.findByIdAndUpdate(ticketId, { rank }),
       );
       await Promise.all(updatePromises);
     }
-    
+
     return {
       success: true,
       message: `Migrated ranks for ${updates.length} tickets`,
       updatedCount: updates.length,
     };
-    
   } catch (error) {
     throw error;
   }
