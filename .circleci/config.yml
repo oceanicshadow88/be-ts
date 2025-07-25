@@ -4,7 +4,6 @@ version: 2.1
 
 orbs:
   snyk: snyk/snyk@1.2.3
-  sonarcloud: sonarsource/sonarcloud@2.0.0
   docker: circleci/docker@1.7.0
 
 executors:
@@ -78,7 +77,6 @@ jobs:
           key: v1-dependencies-{{ checksum "package.json" }}
 
       - run: npm run lint
-      - sonarcloud/scan
   unit_test:
     docker:
       - image: circleci/node:14
