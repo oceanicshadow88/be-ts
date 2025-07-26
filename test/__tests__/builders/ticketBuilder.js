@@ -44,6 +44,11 @@ export default class TicketBuilder extends BaseBuilder {
     return this;
   }
 
+  withComments(comments) {
+    this.properties.comments = comments;
+    return this;
+  }
+
   withDescription(description) {
     this.properties.description = description;
     return this;

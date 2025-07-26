@@ -6,6 +6,10 @@ import db from '../setup/db';
 import TicketBuilder from './builders/ticketBuilder';
 import ProjectBuilder from './builders/projectBuilder';
 import EpicBuilder from './builders/epicBuilder';
+import TypeBuilder from './builders/typeBuilder';
+import LabelBuilder from './builders/labelBuilder';
+import SprintBuilder from './builders/sprintBuilder';
+import StatusBuilder from './builders/statusBuilder';
 import * as Ticket from '../../src/app/model/ticket';
 
 describe('Get Ticket Test', () => {
@@ -85,6 +89,53 @@ describe('Update Ticket Test', () => {
     expect(res.body).toHaveProperty('id', ticket.id);
     expect(res.body).toHaveProperty('title', updatedField.title);
     expect(res.body).toHaveProperty('description', updatedField.description);
+  });
+
+  it('could set allowed ticket fields to null', async () => {
+    const testId = new ObjectId().toString();
+    const epic = await new EpicBuilder().save();
+    const label = await new LabelBuilder().save();
+    const assignId = db.defaultUser._id;
+    const sprint = await new SprintBuilder().save();
+    const status = await new StatusBuilder().save();
+    
+    const ticket = await new TicketBuilder()
+      .withLabels([label.id])
+      .withComments([testId])
+      .withStatus(status.id)
+      .withEpic(epic.id)
+      .withSprint(sprint.id)
+      .withDescription('default description')
+      .withDueAt(new Date())
+      .withReporter(testId)
+      .withAssign(assignId)
+      .save();
+
+    const res = await request(app.application)
+      .put(`/api/v2/tickets/${ticket.id}`)
+      .send({ 
+        labels: [],
+        comments: [],
+        status: null,
+        epic: null,
+        sprint: null,
+        description: null,
+        dueAt: null,
+        reporter: null,
+        assign: null,
+       })
+      .expect(httpStatus.OK);
+
+    expect(res.body).toHaveProperty('id', ticket.id);
+    expect(res.body).toHaveProperty('labels', []);
+    expect(res.body).toHaveProperty('comments', []);
+    expect(res.body).toHaveProperty('status', null);
+    expect(res.body).toHaveProperty('epic', null);
+    expect(res.body).toHaveProperty('sprint', null);
+    expect(res.body).toHaveProperty('description', null);
+    expect(res.body).toHaveProperty('dueAt', null);
+    expect(res.body).toHaveProperty('reporter', null);
+    expect(res.body).toHaveProperty('assign', null);
   });
 
   it('should return NOT_FOUND(404) not found', async () => {
