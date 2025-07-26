@@ -61,7 +61,7 @@ import * as epicValidator from '../../validations/epicValidation';
 import * as importController from '../../controllers/v1/importController';
 import * as exportController from '../../controllers/v1/exportController';
 import { config } from '../../config/app';
-import * as aiController from '../../controllers/v1/aiController';  
+import * as aiController from '../../controllers/v1/aiController';
 
 // ----------------------- register -------------------------
 //apply tenant and register-stepOne-V2
@@ -442,7 +442,6 @@ router.get('/temp/projects/:projectId/import', projectsController.tempImport);
 
 //openAi Funciton call
 router.post('/ai/optimize', aiController.optimize);
-
 
 //code review: Some endpoints may not require saas middleware
 module.exports = router;

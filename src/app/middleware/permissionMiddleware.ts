@@ -7,16 +7,11 @@ import { IRole, IRolePermission } from '../model/role';
 
 const hasPermission = async (role: IRole, slug: string, req: Request) => {
   const roleObj = await role.populate({
-    path: 'permission',
+    path: 'permissions',
     model: Permission.getModel(req.dbConnection),
   });
-  roleObj.permissions.forEach((element) => {
-    const rolePermission = element as IRolePermission;
-    if (rolePermission.slug === slug) {
-      return true;
-    }
-  });
-  return false;
+
+  return roleObj.permissions.some((element) => (element as IRolePermission).slug === slug);
 };
 
 const getProjectRoleId = (projectId: string, projectsRoles: IProjectRole[]) => {

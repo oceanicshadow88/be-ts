@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
-// import { generatePDFByProject, showDailyScrumsByProject } from '../../services/dailyScrumService';
 import logger from 'winston';
 import status from 'http-status';
 import { showDashboard } from '../../services/dashboardService';

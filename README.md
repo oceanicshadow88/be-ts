@@ -46,6 +46,18 @@ One time command
 
 yarn run dev
 
+### AI Features
+
+The project includes AI-powered text optimization for tickets and comments using Claude AI (Anthropic).
+
+To enable this functionality:
+
+```
+# Add to your .env file
+CLAUDE_API_KEY=your_api_key
+CLAUDE_MODEL=claude-3-5-sonnet-20241022
+```
+
 ### Database access
 
 The access database via
