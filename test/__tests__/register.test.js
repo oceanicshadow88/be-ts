@@ -12,7 +12,7 @@ describe('Register API tests', () => {
       .send({
         company: company,
         email: db.defaultUser.email,
-      })
+      });
     expect(res.statusCode).toBe(200);
     expect(res.body.data.newTenants.origin).toBe(`${config.protocol}${company}.${config.mainDomain}`);
     expect(res.body.data.newTenants.owner).toBe(db.defaultUser.id);

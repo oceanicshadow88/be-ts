@@ -48,7 +48,7 @@ export default class SprintBuilder extends BaseBuilder {
     return {
       name: 'Sprint Title',
       project: project._id,
-      tenant: db.tenantId,
+      tenant: db.defaultTenant._id,
     };
   }
 

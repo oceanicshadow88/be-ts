@@ -3,7 +3,7 @@ import db from '../../setup/db';
 export default class BaseBuilder {
   constructor(defaultValues = true, hasTenant = true) {
     this.useDefault = defaultValues;
-    this.properties = hasTenant ? { tenant: db.tenantId } : {};
+    this.properties = hasTenant ? { tenant: db.defaultTenant._id } : {};
   }
 
   async buildDefault() {

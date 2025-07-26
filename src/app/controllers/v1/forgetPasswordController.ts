@@ -15,6 +15,8 @@ export const forgetPasswordApplication = async (req: Request, res: Response) => 
     return res.status(status.UNPROCESSABLE_ENTITY).json({});
   }
   const result = await forgotPassword(req);
+
+  
   return result ? res.status(status.OK).send() : res.status(status.NOT_FOUND).send();
 };
 

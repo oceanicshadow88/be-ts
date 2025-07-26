@@ -10,6 +10,7 @@ import {
   updateTicket,
   getSummaryByProjectId,
   getStatusSummaryGroupedByEpic,
+  migrateTicketRanks,
 } from '../../services/ticketService';
 import { asyncHandler } from '../../utils/helper';
 
@@ -63,6 +64,16 @@ export const show = asyncHandler(async (req: Request, res: Response) => {
   }
   const result = await getShowTicket(req);
   res.status(200).send(replaceId(result[0]));
+});
+
+export const migrateRanks = asyncHandler(async (req: Request, res: Response) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    throw new Error();
+  }
+  const result = await migrateTicketRanks(req);
+  res.status(200).json(result);
 });
 
 export const ticketsByProject = asyncHandler(async (req: Request, res: Response) => {

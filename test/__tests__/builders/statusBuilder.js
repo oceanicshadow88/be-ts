@@ -32,7 +32,7 @@ export default class StatusBuilder extends BaseBuilder {
     return {
       name: 'To Do',
       slug: 'to-do',
-      tenant: db.tenantId,
+      tenant: db.defaultTenant._id,
       isDefault: true,
     };
   }
@@ -56,7 +56,7 @@ export default class StatusBuilder extends BaseBuilder {
     const saved = [];
 
     for (const status of DEFAULT_STATUS) {
-      const existing = await StatusModel.findOne({ slug: status.slug, tenant: db.tenantId });
+      const existing = await StatusModel.findOne({ slug: status.slug, tenant: db.defaultTenant._id });
       if (existing) {
         saved.push(existing);
       } else {
@@ -64,7 +64,7 @@ export default class StatusBuilder extends BaseBuilder {
           .withName(status.name)
           .withSlug(status.slug)
           .withIsDefault(status.isDefault)
-          .withTenant(db.tenantId)
+          .withTenant(db.defaultTenant._id)
           .save();
         saved.push(newStatus);
       }

@@ -61,7 +61,7 @@ import * as epicValidator from '../../validations/epicValidation';
 import * as importController from '../../controllers/v1/importController';
 import * as exportController from '../../controllers/v1/exportController';
 import { config } from '../../config/app';
-
+import * as aiController from '../../controllers/v1/aiController';
 
 // ----------------------- register -------------------------
 //apply tenant and register-stepOne-V2
@@ -174,6 +174,13 @@ router.post(
   ticketValidation.store,
   authenticationTokenMiddleware,
   ticketController.store,
+);
+
+router.post(
+  '/tickets/migrate-ranks',
+  ticketValidation.migrateRanks,
+  authenticationTokenMiddleware,
+  ticketController.migrateRanks,
 );
 
 router.put(
@@ -420,18 +427,21 @@ router.get('/export-project/fields', exportController.exportTicketFields);
 router.get('/export-project/:projectId/tickets', exportController.exportTicketsCsv);
 // dashboard
 router.get('/projects/:projectId/dashboards', dashboardValidations.show, dashboardController.show);
-router.get(
-  '/projects/:projectId/dashboards/dailyScrums',
-  dashboardValidations.showDailyScrums,
-  dashboardController.showDailyScrums,
-);
-router.get(
-  '/projects/:projectId/dashboards/reports',
-  dashboardValidations.generatePDF,
-  dashboardController.generatePDF,
-);
+// router.get(
+//   '/projects/:projectId/dashboards/dailyScrums',
+//   dashboardValidations.showDailyScrums,
+//   dashboardController.showDailyScrums,
+// );
+// router.get(
+//   '/projects/:projectId/dashboards/reports',
+//   dashboardValidations.generatePDF,
+//   dashboardController.generatePDF,
+// );
 
 router.get('/temp/projects/:projectId/import', projectsController.tempImport);
+
+//openAi Funciton call
+router.post('/ai/optimize', aiController.optimize);
 
 //code review: Some endpoints may not require saas middleware
 module.exports = router;
