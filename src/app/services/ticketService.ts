@@ -10,7 +10,7 @@ import * as Project from '../model/project';
 import * as Epic from '../model/epic';
 import { ActivityType, IChange, ITicket, ITicketDocument } from '../types';
 import mongoose, { Mongoose, Types } from 'mongoose';
-import { generateNKeysBetween } from '../utils/generateRank';
+import { generateNRanksBetweenTwoTickets } from '../utils/generateRank';
 
 /** Find tickets with given filters
  * @param dbConnection Mongoose
@@ -114,7 +114,7 @@ export const migrateTicketRanks = async (req: Request) => {
 
     const ticketsWithoutRanks = await ticketModel.find({ 
       project: projectId, 
-      rank: { $in: [null, undefined, ''] }
+      rank: { $in: [null, undefined, ''] },
     }).sort({ createdAt: 1 });
     
     const groupedTickets: { [key: string]: typeof ticketsWithoutRanks } = {};
@@ -127,21 +127,21 @@ export const migrateTicketRanks = async (req: Request) => {
     });
     
     const updates: { ticketId: string; rank: string }[] = [];
-    Object.entries(groupedTickets).forEach(([sprintId, tickets]) => {
+    Object.entries(groupedTickets).forEach(([, tickets]) => {
       const ticketsArray = tickets as any[];
-      const newRanks = generateNKeysBetween(null, null, ticketsArray.length);
+      const newRanks = generateNRanksBetweenTwoTickets(null, null, ticketsArray.length);
       
       ticketsArray.forEach((ticket, index) => {
         updates.push({
           ticketId: ticket.id,
-          rank: newRanks[index]
+          rank: newRanks[index],
         });
       });
     });
     
     if (updates.length > 0) {
       const updatePromises = updates.map(({ ticketId, rank }) => 
-        ticketModel.findByIdAndUpdate(ticketId, { rank })
+        ticketModel.findByIdAndUpdate(ticketId, { rank }),
       );
       await Promise.all(updatePromises);
     }
@@ -149,13 +149,13 @@ export const migrateTicketRanks = async (req: Request) => {
     return {
       success: true,
       message: `Migrated ranks for ${updates.length} tickets`,
-      updatedCount: updates.length
+      updatedCount: updates.length,
     };
     
   } catch (error) {
     throw error;
   }
-}
+};
 
 const comparePrimitives = (
   field: string,

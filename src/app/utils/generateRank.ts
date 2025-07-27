@@ -1,4 +1,4 @@
-export const BASE_62_DIGITS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+export const BASE62_CHARSET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
 export function getIntegerLength(head: string): number {
   if (head >= 'a' && head <= 'z') {
@@ -130,10 +130,10 @@ export function decrementInteger(x: string, digits: string): string | null {
   return head + digs.join('');
 }
 
-export function generateKeyBetween(
+export function generateRankBetweenTwoTickets(
   a: string | null | undefined,
   b: string | null | undefined,
-  digits = BASE_62_DIGITS
+  digits = BASE62_CHARSET,
 ): string {
   if (a != null) {
     validateOrderKey(a, digits);
@@ -188,43 +188,43 @@ export function generateKeyBetween(
   return ia + midpoint(fa, null, digits);
 }
 
-export function generateNKeysBetween(
+export function generateNRanksBetweenTwoTickets(
   a: string | null | undefined,
   b: string | null | undefined,
   n: number,
-  digits = BASE_62_DIGITS
+  digits = BASE62_CHARSET,
 ): string[] {
   if (n === 0) {
     return [];
   }
   if (n === 1) {
-    return [generateKeyBetween(a, b, digits)];
+    return [generateRankBetweenTwoTickets(a, b, digits)];
   }
   if (b == null) {
-    let c = generateKeyBetween(a, b, digits);
+    let c = generateRankBetweenTwoTickets(a, b, digits);
     const result = [c];
     for (let i = 0; i < n - 1; i += 1) {
-      c = generateKeyBetween(c, b, digits);
+      c = generateRankBetweenTwoTickets(c, b, digits);
       result.push(c);
     }
     return result;
   }
   if (a == null) {
-    let c = generateKeyBetween(a, b, digits);
+    let c = generateRankBetweenTwoTickets(a, b, digits);
     const result = [c];
     for (let i = 0; i < n - 1; i += 1) {
-      c = generateKeyBetween(a, c, digits);
+      c = generateRankBetweenTwoTickets(a, c, digits);
       result.push(c);
     }
     result.reverse();
     return result;
   }
   const mid = Math.floor(n / 2);
-  const c = generateKeyBetween(a, b, digits);
+  const c = generateRankBetweenTwoTickets(a, b, digits);
   return [
-    ...generateNKeysBetween(a, c, mid, digits),
+    ...generateNRanksBetweenTwoTickets(a, c, mid, digits),
     c,
-    ...generateNKeysBetween(c, b, n - mid - 1, digits)
+    ...generateNRanksBetweenTwoTickets(c, b, n - mid - 1, digits),
   ];
 }
 
@@ -232,6 +232,6 @@ export function rebalanceRanks(ranks?: string[]): string[] {
   if (!ranks) {
     return [];
   }
-  const newRanks = generateNKeysBetween(null, null, ranks.length);
+  const newRanks = generateNRanksBetweenTwoTickets(null, null, ranks.length);
   return newRanks;
 }

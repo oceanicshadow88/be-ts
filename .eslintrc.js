@@ -16,7 +16,10 @@ module.exports = {
         'DEFAULT_FE_URL', 
         'DEFAULT_TANANT_CONNECTION',
         'DEFAULT_DOMAIN_CONNECTION',
-      ] }],
+      ],
+      ignoreContent: [
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
+      ], }],
     'import/extensions': [
       'off',
       'ignorePackages',
