@@ -62,9 +62,12 @@ const getDomain = (req: Request, isLocalEnv: boolean) => {
 
 const saas = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   //For more info: https://lucid.app/lucidspark/c24b6e6f-7e1a-439a-a4bf-699edd941d86/edit?viewport_loc=-151%2C-545%2C2560%2C1249%2C0_0&invitationId=inv_052c9ca7-93bd-491e-b621-f97c52fe116f
+  //Connect prod server required to set CONNECT_TENANT in env file
+  
   try {
     const isLocalEnv = config.environment === 'local';
     const domain = getDomain(req, isLocalEnv);
+    console.log('Connecting tenant for domain:', domain);
     const tenantsConnection = await tenantsDBConnection();
     const tenant = await getTenant(domain, tenantsConnection, isLocalEnv);
     const tenantId = tenant.id.toString();
