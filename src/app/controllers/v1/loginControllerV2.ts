@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Response, Request, NextFunction } from 'express';
 import * as User from '../../model/user';
 
@@ -17,17 +18,19 @@ declare module 'express-serve-static-core' {
 }
 
 export const login = asyncHandler(async (req: Request, res: Response) => {
+  console.log('1');
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(status.UNPROCESSABLE_ENTITY).json({});
   }
-
+  console.log('2');
   const origin = req.get('origin');
-
+  console.log('3', origin);
   const user = await User.getModel(req.tenantsConnection).findByCredentials(
     req.body.email,
     req.body.password,
   );
+  console.log(user);
   if (user === null) return res.status(status.UNAUTHORIZED).send();
   if (user === undefined) return res.status(status.UNAUTHORIZED).send();
   // check the if the domain is in user's tenants when user login

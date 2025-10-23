@@ -11,11 +11,13 @@ export const optimize = async (req: Request, res: Response) => {
 
   const result = await optimizeTextByClaudeWithRetry(content, action);
 
-  if (action === 'optimizeTicketDescription') {
-    const toolContent = result.content.find((c) => c.type === 'tool_use');
-    res.json({ success: true, data: toolContent?.input });
-  } else if (action === 'optimizeText') {
-    const textContent = result.content.find((c) => c.type === 'text');
-    res.json({ success: true, data: textContent?.text });
-  }
+  res.json({ success: true, data: result });
+
+  // if (action === 'optimizeTicketDescription') {
+  //   const toolContent = result.content.find((c) => c.type === 'tool_use');
+  //   res.json({ success: true, data: toolContent?.input });
+  // } else if (action === 'optimizeText') {
+  //   const textContent = result.content.find((c) => c.type === 'text');
+  //   res.json({ success: true, data: textContent?.text });
+  // }
 };
