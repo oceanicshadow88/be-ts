@@ -67,7 +67,6 @@ const saas = asyncHandler(async (req: Request, res: Response, next: NextFunction
   try {
     const isLocalEnv = config.environment === 'local';
     const domain = getDomain(req, isLocalEnv);
-    console.log('Connecting tenant for domain:', domain);
     const tenantsConnection = await tenantsDBConnection();
     const tenant = await getTenant(domain, tenantsConnection, isLocalEnv);
     const tenantId = tenant.id.toString();
