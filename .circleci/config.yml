@@ -12,7 +12,7 @@ executors:
       IMAGE_NAME: kitman20022002/techscrumapp
     docker: # Each job requires specifying an executor
       # (either docker, macos, or machine), see
-      - image: circleci/node:latest
+      - image: cimg/node:lts
         auth:
           username: $DOCKERHUB_USERNAME
           password: $DOCKERHUB_PASSWORD
@@ -79,7 +79,7 @@ jobs:
       - run: npm run lint
   unit_test:
     docker:
-      - image: circleci/node:14
+      - image: cimg/node:14.21
     steps:
       - checkout
       - run:
@@ -91,7 +91,7 @@ jobs:
             fi
   skip_ci_check:
     docker:
-      - image: circleci/node:14
+      - image: cimg/node:14.21
     steps:
       - checkout
       - run:
@@ -103,7 +103,7 @@ jobs:
             fi
   semantic_release:
     docker:
-      - image: circleci/node:14
+      - image: cimg/node:14.21
     steps:
       - checkout
       - run:

@@ -1,5 +1,6 @@
 export {};
-import aws from 'aws-sdk';
+import { SES } from '@aws-sdk/client-ses';
+import { SESv2 } from '@aws-sdk/client-sesv2';
 const { tenantsDBConnection, tenantDBConnection, PUBLIC_DB } = require('../database/connections');
 import config from '../config/app';
 import whois from 'whois-json';
@@ -9,17 +10,11 @@ import { winstonLogger } from '../../loaders/logger';
 interface RegistrationData {
   domainStatus?: string | undefined;
 }
-
-aws.config.update({
-  region: awsConfig.awsRegion,
-  accessKeyId: awsConfig.awsAccessKey,
-  secretAccessKey: awsConfig.awsSecretKey,
-});
-const sesv2 = new aws.SESV2();
-const ses = new aws.SES();
+const sesv2 = new SESv2(awsConfig);
+const ses = new SES(awsConfig);
 
 const hasAllRequiredTemplates = async () => {
-  const awsRes = await sesv2.listEmailTemplates({ PageSize: 10 }).promise();
+  const awsRes = await sesv2.listEmailTemplates({ PageSize: 10 });
   const requiredTemplates = [
     'Subscription',
     'CustomEmailVerify',
@@ -36,8 +31,10 @@ const hasAllRequiredTemplates = async () => {
 };
 
 const hasSES = async (domain: string) => {
-  const awsRes = await ses.getIdentityVerificationAttributes({ Identities: [domain] }).promise();
-  return awsRes.VerificationAttributes[domain] ? '\x1b[32mSuccess\x1b[0m' : '\x1b[31mFailed\x1b[0m';
+  const awsRes = await ses.getIdentityVerificationAttributes({ Identities: [domain] });
+  return awsRes.VerificationAttributes?.[domain]
+    ? '\x1b[32mSuccess\x1b[0m'
+    : '\x1b[31mFailed\x1b[0m';
 };
 
 const isValidDomain = async (domain: string) => {

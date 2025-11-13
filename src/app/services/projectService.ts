@@ -7,7 +7,7 @@ import * as Role from '../model/role';
 import * as User from '../model/user';
 import * as RetroBoard from '../model/retroBoard';
 
-import { getLabel } from './labelService';
+import { getLabels } from './labelService';
 import { getUserProjectRole } from './roleService';
 import typeService from './typeService';
 import { findSprints } from './sprintService';
@@ -120,7 +120,7 @@ export const projectDetails = async (req: Request) => {
   const projectModel = Project.getModel(req.dbConnection);
   const [labels, users, ticketTypes, sprints, statuses, boards, epics, details, retroBoards] =
     await Promise.all([
-      getLabel(req),
+      getLabels(req),
       getUserProjectRole(req),
       typeService.getTicketType(req),
       findSprints(req.params.id, false, req.dbConnection),

@@ -1,6 +1,7 @@
 import { Request } from 'express';
 import config from '../config/app';
-import aws from 'aws-sdk';
+import { SES } from '@aws-sdk/client-ses';
+import awsConfig from '../config/aws';
 
 export const sendContactEmail = (req: Request) => {
   const params = {
@@ -26,5 +27,5 @@ export const sendContactEmail = (req: Request) => {
   };
 
   // Create the promise and SES service object
-  new aws.SES({ apiVersion: '2010-12-01' }).sendEmail(params).promise();
+  new SES(awsConfig).sendEmail(params);
 };

@@ -8,6 +8,7 @@ import * as Sprint from '../model/sprint';
 import * as Activity from '../model/activity';
 import * as Project from '../model/project';
 import * as Epic from '../model/epic';
+import * as Status from '../model/status';
 import { ActivityType, IChange, ITicket, ITicketDocument } from '../types';
 import mongoose, { Mongoose, Types } from 'mongoose';
 import { generateNKeysBetween } from '../utils/generateRank';
@@ -264,15 +265,23 @@ export const updateTicket = async (req: Request) => {
   const fieldsToUpdate = { ...req.body };
   const TicketModel = Ticket.getModel(req.dbConnection);
   const UserModel = User.getModel(req.tenantsConnection);
+  
+  // Ensure all required models are registered before populate operations
+  const TypeModel = Type.getModel(req.dbConnection);
+  const ProjectModel = Project.getModel(req.dbConnection);
+  const EpicModel = Epic.getModel(req.dbConnection);
+  const LabelModel = Label.getModel(req.dbConnection);
+  const SprintModel = Sprint.getModel(req.dbConnection);
+  const StatusModel = Status.getModel(req.dbConnection);
 
   const previousTicket = await TicketModel.findById(id)
-    .populate({ path: 'type', select: 'name' })
-    .populate({ path: 'project', select: 'name' })
-    .populate({ path: 'epic', select: 'name' })
-    .populate({ path: 'labels', select: 'name' })
+    .populate({ path: 'type', select: 'name', model: TypeModel })
+    .populate({ path: 'project', select: 'name', model: ProjectModel })
+    .populate({ path: 'epic', select: 'name', model: EpicModel })
+    .populate({ path: 'labels', select: 'name', model: LabelModel })
     .populate({ path: 'assign', select: 'name', model: UserModel })
-    .populate({ path: 'sprint', select: 'name' })
-    .populate({ path: 'status', select: 'name' });
+    .populate({ path: 'sprint', select: 'name', model: SprintModel })
+    .populate({ path: 'status', select: 'name', model: StatusModel });
 
   if (!previousTicket) return null;
 
@@ -280,13 +289,13 @@ export const updateTicket = async (req: Request) => {
     new: true,
     runValidators: true,
   })
-    .populate({ path: 'type', select: 'name' })
-    .populate({ path: 'project', select: 'name' })
-    .populate({ path: 'epic', select: 'name' })
-    .populate({ path: 'labels', select: 'name' })
+    .populate({ path: 'type', select: 'name', model: TypeModel })
+    .populate({ path: 'project', select: 'name', model: ProjectModel })
+    .populate({ path: 'epic', select: 'name', model: EpicModel })
+    .populate({ path: 'labels', select: 'name', model: LabelModel })
     .populate({ path: 'assign', select: 'name', model: UserModel })
-    .populate({ path: 'sprint', select: 'name' })
-    .populate({ path: 'status', select: 'name' });
+    .populate({ path: 'sprint', select: 'name', model: SprintModel })
+    .populate({ path: 'status', select: 'name', model: StatusModel });
 
   if (!updatedTicket) return null;
 
