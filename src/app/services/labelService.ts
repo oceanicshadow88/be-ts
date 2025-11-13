@@ -3,9 +3,9 @@ const Label = require('../model/label');
 const Ticket = require('../model/ticket');
 import { Types } from 'mongoose';
 
-export const getLabel = async (req: Request) => {
+export const getLabels = async (req: Request) => {
   const labelModel = Label.getModel(req.dbConnection);
-  return labelModel.find({});
+  return labelModel.find({ tenant: req.tenantId });
 };
 
 export const createLabel = async (req: Request) => {

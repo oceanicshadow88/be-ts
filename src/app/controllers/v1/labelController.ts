@@ -2,10 +2,10 @@ import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { replaceId } from '../../services/replaceService';
 import status from 'http-status';
-import { createLabel, deleteLabel, getLabel, updateLabel } from '../../services/labelService';
+import { createLabel, deleteLabel, getLabels, updateLabel } from '../../services/labelService';
 
 export const index = async (req: Request, res: Response) => {
-  const result = await getLabel(req);
+  const result = await getLabels(req);
   res.send(replaceId(result));
 };
 
