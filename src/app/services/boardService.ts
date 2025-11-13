@@ -34,6 +34,6 @@ export const getBoard = async (req: Request) => {
 
 export const getAllBoards = async (req: Request) => {
   const boardModel = Board.getModel(req.dbConnection);
-  const board = await boardModel.find({}).populate('statuses');
+  const board = await boardModel.find({ tenant: req.tenantId }).populate('statuses');
   return replaceId(board);
 };

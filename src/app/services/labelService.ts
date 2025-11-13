@@ -5,7 +5,7 @@ import { Types } from 'mongoose';
 
 export const getLabel = async (req: Request) => {
   const labelModel = Label.getModel(req.dbConnection);
-  return labelModel.find({});
+  return labelModel.find({ tenant: req.tenantId });
 };
 
 export const createLabel = async (req: Request) => {

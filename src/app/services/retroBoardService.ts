@@ -5,7 +5,7 @@ import * as RetroStatus from '../model/retroStatus';
 
 export const getRetroBoards = async (req: Request) => {
   const result = await RetroBoard.getModel(req.dbConnection)
-    .find({})
+    .find({ isPublic: true })
     .populate({ path: 'statuses', model: RetroStatus.getModel(req.dbConnection) });
   return replaceId(result);
 };

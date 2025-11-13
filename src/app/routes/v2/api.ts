@@ -232,7 +232,10 @@ router.get(
   projectValidation.show,
   projectsController.show,
 );
-router.get('/projects/:id/details', projectsController.details);
+router.get(
+  '/projects/:id/details',  
+  authenticationTokenMiddleware,
+  projectsController.details);
 router.put(
   '/projects/:id',
   authenticationTokenMiddleware,
