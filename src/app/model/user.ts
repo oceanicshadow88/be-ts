@@ -42,6 +42,8 @@ export interface IUser {
   tenants?: Types.ObjectId[];
 }
 
+
+
 export type IUserDocument = IUser & Document;
 
 const userSchema = new Schema<IUserDocument>(
