@@ -20,7 +20,7 @@ export const config = {
   publicConnection: process.env.PUBLIC_CONNECTION ?? '',
   connectTenantOrigin: process.env.CONNECT_TENANT ?? null,
   mainDomain: process.env.MAIN_DOMAIN ?? null,
-  protocol: process.env.ENVIRONMENT === 'local' ? 'http://' : 'https://',
+  protocol: process.env.ENVIRONMENT === 'local1' ? 'http://' : 'https://',
   devopsMode: process.env.DEVOPS_MODE === 'true' ? true : false,
   postman_testing: process.env.POSTMAN_TESTING ?? 'false',
 };

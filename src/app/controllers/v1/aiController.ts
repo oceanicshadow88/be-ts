@@ -11,7 +11,7 @@ export const optimize = async (req: Request, res: Response) => {
   }
 
   const result = await optimizeTextByClaudeWithRetry(content, action);
-
+  
   if (action === 'optimizeTicketDescription') {
     const toolContent: ToolUseBlock | undefined = result.content.find(
       (c) => c.type === 'tool_use',

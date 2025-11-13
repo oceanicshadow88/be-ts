@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Response, Request, NextFunction } from 'express';
 import * as User from '../../model/user';
 
@@ -21,9 +22,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   if (!errors.isEmpty()) {
     return res.status(status.UNPROCESSABLE_ENTITY).json({});
   }
-
   const origin = req.get('origin');
-
   const user = await User.getModel(req.tenantsConnection).findByCredentials(
     req.body.email,
     req.body.password,

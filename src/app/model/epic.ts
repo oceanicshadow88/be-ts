@@ -19,7 +19,6 @@ const epicSchema = new mongoose.Schema(
       required: true,
       index:true,
     },
-
     color: {
       type: String,
       default:'#6a2add',
