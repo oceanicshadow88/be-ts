@@ -94,6 +94,10 @@ Logs file help developers/devops to address server or code issues when applicati
 
 ## License
 
+© 2025 Kitman Yiu. All Rights Reserved.
+
+Unauthorized copying of this file is strictly prohibited.
+
 ## Coding Standard
 
 - https://lilac-dancer-737.notion.site/Coding-Guidelines-bfa77d75476a4b19a195ddb20b02bb33
