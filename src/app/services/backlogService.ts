@@ -45,7 +45,8 @@ class BacklogFilterBuilder {
   withLabels(labels: any) {
     if (!labels) return this;
     const labelIds = labels.split(',');
-    this.filters.tags = { $all: labelIds };
+    this.filters.labels = { $all: labelIds };
+
     return this;
   }
 

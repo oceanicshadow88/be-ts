@@ -165,7 +165,7 @@ export const showProject = async (req: Request) => {
   }
 
   const accessibleProjectIds =
-    req.user?.projectsRoles?.map((pr: any) => pr.project.toString()) ?? [];
+    req.user?.projectsRoles?.filter((pr: any) => pr.project).map((pr: any) => pr.project.toString()) ?? [];
   if (!accessibleProjectIds.includes(req.params.id)) {
     return {};
   }
@@ -175,7 +175,7 @@ export const showProject = async (req: Request) => {
 export const getAllProjects = async (req: Request) => {
   const userModel = await User.getModel(req.tenantsConnection);
   const accessibleProjectIds =
-    req.user?.projectsRoles?.map((pr: any) => pr.project.toString()) ?? [];
+    req.user?.projectsRoles?.filter((pr: any) => pr.project).map((pr: any) => pr.project.toString()) ?? [];
 
   const result =
     (await Project.getModel(req.dbConnection)
